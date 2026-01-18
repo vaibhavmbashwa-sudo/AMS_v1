@@ -1,0 +1,12 @@
+../Core/ADBMS6830/src/mcuWrapper.c:244:6:Delay_ms	16	static
+../Core/ADBMS6830/src/mcuWrapper.c:260:6:adBmsCsLow	8	static
+../Core/ADBMS6830/src/mcuWrapper.c:276:6:adBmsCsHigh	8	static
+../Core/ADBMS6830/src/mcuWrapper.c:296:6:spiWriteBytes	16	static
+../Core/ADBMS6830/src/mcuWrapper.c:322:6:spiWriteReadBytes	24	static
+../Core/ADBMS6830/src/mcuWrapper.c:348:6:spiReadBytes	16	static
+../Core/ADBMS6830/src/mcuWrapper.c:364:6:startTimer	8	static
+../Core/ADBMS6830/src/mcuWrapper.c:380:6:stopTimer	8	static
+../Core/ADBMS6830/src/mcuWrapper.c:397:6:adBms_delayUs	16	static
+../Core/ADBMS6830/src/mcuWrapper.c:406:10:getTimCount	16	static
+../Core/ADBMS6830/src/mcuWrapper.c:429:6:adBmsWakeupIc	24	static
+../Core/ADBMS6830/src/mcuWrapper.c:440:6:adBmsWakeupIcTim	24	static

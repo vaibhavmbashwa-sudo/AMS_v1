@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<session version="1.0">
+<refactoring comment="Delete resource &apos;AMS_H523/Core/ADBMS6830/src/adBms_utildef.c&apos;" deleteContents="false" description="Delete resource &apos;AMS_H523/Core/ADBMS6830/src/adBms_utildef.c&apos;" element1="/AMS_H523/Core/ADBMS6830/src/adBms_utildef.c" flags="7" id="org.eclipse.ltk.core.refactoring.delete.resources" resources="1" stamp="1767252826769"/>
+</session>

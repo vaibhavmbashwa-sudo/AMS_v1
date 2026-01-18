@@ -1,0 +1,378 @@
+#include "adBms_Application.h"
+
+#include "common.h"
+
+#include "adBms6830GenericType.h"
+#include "stddef.h"
+#include "math.h"
+#include <stdint.h>
+#include <float.h>
+
+// Definitions
+#define I_SOC_TRESHOLD 5
+#define I_DCIR_TRESHOLD 5
+#define MOD_CAPACITY 25
+#define DCIR_MIN_LIMIT 2500
+#define DCIR_MAX_LIMIT 5000
+#define DCIR_JUMP_LIMIT 1000
+#define BETA 0.1
+#define SOC_MIN_LIMIT 0
+#define SOC_MAX_LIMIT 100
+#define SOC_MAX_FAULT 100
+#define SOC_MIN_FAULT 0
+#define SEG_NUM 5
+#define CELL_NUM 12
+#define BALANCE_RES_VALUE 7.5
+#define CURRENT_SAMPLING_TIME 2.5
+
+//
+SEG_PARAMS *segm_params_list[] = {
+
+		&SEG1,
+		&SEG2,
+		&SEG3,
+		&SEG4,
+		&SEG5
+};
+// Bit reversal look up table
+ const uint8_t rev4_lut[16] = {
+    0x0, /* 0000 -> 0000 */
+    0x8, /* 0001 -> 1000 */
+    0x4, /* 0010 -> 0100 */
+    0xC, /* 0011 -> 1100 */
+    0x2, /* 0100 -> 0010 */
+    0xA, /* 0101 -> 1010 */
+    0x6, /* 0110 -> 0110 */
+    0xE, /* 0111 -> 1110 */
+    0x1, /* 1000 -> 0001 */
+    0x9, /* 1001 -> 1001 */
+    0x5, /* 1010 -> 0101 */
+    0xD, /* 1011 -> 1101 */
+    0x3, /* 1100 -> 0011 */
+    0xB, /* 1101 -> 1011 */
+    0x7, /* 1110 -> 0111 */
+    0xF  /* 1111 -> 1111 */
+};
+// Polynomials for SOC->OCV and OCV->SOC
+ float soc_to_ocv_above_95[4] = { -18472846.4, 574008.04, -5933.23, 20.446 };
+ float soc_to_ocv_below_20[4] = { 20660.0, 1931.77, -94.9, 1.635 };
+ float soc_to_ocv_middle[4] = { 34288.97, -8.631, 1.49, -0.00723 };
+ float ocv_to_soc_above_4_05[4] = { -313728.7, 226647.04, -54564.92, 4379.07 };
+ float ocv_to_soc_below_3_45[4] = { -5184.07, 5038.43, -1632.68, 176.67 };
+ float ocv_to_soc_middle[4] = { -9897.09, 7584.83, -1950.01, 169.44 };
+
+// DCIR Calculation
+ void getDCIR(void)
+ {
+	 float ocv_temp = 0.0;
+	 float dcir_temp = 0.0;
+	 uint8_t bal_flag = 0;
+	 if (TS_Current > I_DCIR_TRESHOLD)
+	 {
+		 for(int i=1; i<=SEG_NUM; i++)
+		 {
+			 SEG_PARAMS *s = segm_params_list[i];
+			 for(int j =0; j<CELL_NUM;j++)
+			 {
+				if (s->SOC[j] > 95) {
+				            for (int a = 0; a < 4; a++) {
+				               ocv_temp = ocv_temp + soc_to_ocv_above_95[a] * pow(s->SOC[j], a);
+				            }
+				          } else if (s->SOC[j] < 20) {
+				            for (int a = 0; a < 4; a++) {
+				               ocv_temp = ocv_temp + soc_to_ocv_below_20[a] * pow(s->SOC[j], a);
+				            }
+				          } else {
+				            for (int a = 0; a < 4; a++) {
+				               ocv_temp = ocv_temp + soc_to_ocv_middle[a] * pow(s->SOC[j], a);
+				            }
+				          }
+				bal_flag = (uint8_t)(( s->BAL_STAT >> j) & 0x0001);
+				dcir_temp = ((ocv_temp - s->CELL_V[j]) / ( TS_Current + bal_flag * (s->CELL_V[j] / (10000.0 * BALANCE_RES_VALUE)))) * 100.0;
+				 ocv_temp = 0.0;
+				 if (dcir_temp > 0.0)
+				 {
+					 uint16_t dcir = (uint16_t)dcir_temp;
+					 uint16_t dcir_old = (uint16_t) s->DCIR[j];
+					 if ((dcir > DCIR_MIN_LIMIT) && (dcir < DCIR_MAX_LIMIT) && (abs(dcir - dcir_old) < DCIR_JUMP_LIMIT))
+					 {
+						 s->DCIR[j] = (1.0 - BETA) * dcir_old + BETA * dcir;
+					 }
+
+				 }
+			 }
+		 }
+
+	 }
+ }
+
+// SOC calculation
+ void getSOC(void)
+ {
+	 float alpha = 0.0;
+	 uint8_t first = 1;
+	 uint8_t bal_flag = 0;
+	 uint8_t soc1_valid = 0;
+	 uint8_t soc2_valid = 0;
+	 float ocv_temp = 0;
+	 float soc1_temp = 0.0;
+	 float soc2_temp = 0.0;
+	 float soc_final_temp = 0.0;
+
+	 alpha = fmaxf(0.0F, (1 - (abs(TS_Current) / I_SOC_TRESHOLD)));
+	 for(int i=1; i<=SEG_NUM; i++)
+	 		 {
+	 			 SEG_PARAMS *m = segm_params_list[i];
+	 			for(int j =0; j<CELL_NUM;j++)
+	 			{
+	 				bal_flag = (uint8_t)(( m->BAL_STAT >> j) & 0x0001);
+	 				ocv_temp = (m->CELL_V[j] / 10000.0) + ( m->DCIR[j] / 1000000.0) * ( TS_Current + bal_flag * (m->CELL_V[j] / (BALANCE_RES_VALUE * 10000.0)));
+	 				        if (ocv_temp > 4.05) {
+	 				          for (int a = 0; a < 4; a++) {
+	 				            soc1_temp += ocv_to_soc_above_4_05[a] * pow(ocv_temp, a);
+	 				          }
+	 				        } else if (ocv_temp < 3.45) {
+	 				          for (int a = 0; a < 4; a++) {
+	 				            soc1_temp += ocv_to_soc_below_3_45[a] * pow(ocv_temp, a);
+	 				          }
+	 				        } else {
+	 				          for (int a = 0; a < 4; a++) {
+	 				            soc1_temp += ocv_to_soc_middle[a] * pow(ocv_temp, a);
+	 				          }
+	 				        }
+	 				        soc1_temp = fminf(fmaxf(soc1_temp, SOC_MIN_LIMIT), SOC_MAX_LIMIT);
+	 				       if ((soc1_temp >= SOC_MIN_LIMIT) && (soc1_temp <= SOC_MAX_LIMIT)) {
+	 				                 soc1_valid = 1;
+	 				                 m->SOC_OCV[j] = soc1_temp;
+	 				                 if (first == 1) {
+	 				                	m->SOC_CC[j] = soc1_temp;
+	 				                   soc2_temp = soc1_temp;
+	 				                   soc2_valid = 1;
+	 				                 }
+	 				               }
+	 				      if (first != 1) {
+	 				                soc2_temp = (((m->SOC_CC[j] / 100.0) * (MOD_CAPACITY) - (TS_Current * ((CURRENT_SAMPLING_TIME) / (1000 * 3600)))) / MOD_CAPACITY) * 100.0;
+	 				                soc2_temp = fminf(fmaxf(soc2_temp, SOC_MIN_LIMIT), SOC_MAX_LIMIT);
+	 				                if ((soc2_temp >= SOC_MIN_LIMIT) && (soc2_temp <= SOC_MAX_LIMIT)) {
+	 				                  soc2_valid = 1;
+	 				                  m->SOC_CC[j] = soc2_temp;
+	 				                }
+	 				              }
+	 				              soc_final_temp = alpha * soc1_temp + (1.0 - alpha) * soc2_temp;
+	 				              if ((soc1_valid == 1) && (soc2_valid == 1))
+	 				              {
+	 				            	 m->SOC[j] = soc_final_temp;
+	 				              }
+	 				              soc1_valid = 0;
+	 				              soc2_valid = 0;
+	 				            }
+	 				          }
+	 if (first == 1)
+	 {
+		 first = 0;
+		 getDCIR();
+	 	 //also update balancing status
+	 }
+ }
+
+//CELL BALANCING
+
+
+// Bit reversal by lookup
+ uint8_t reverse4bits (uint8_t x)
+{
+    return rev4_lut[x & 0x0F];
+}
+
+ // Temperature V to C
+ float v2Temp (float V)
+ {
+ 	return -2.13555866e-11 * pow(V,5)
+     -2.023286867e-9 * pow(V,4)
+     +1.354951937e-6 * pow(V,3)
+     -6.256450703e-5 * pow(V,2)
+     -0.0113354782 * V
+     +2.164523065;
+ }
+
+// Coeff 7
+
+
+
+float get_temp_from_voltage(float voltage) {
+    float coeffs[7];
+    float offset;
+
+    // Note: Voltage decreases as Temperature increases.
+    // Range is approx 2.45V (-40C) down to 1.32V (120C)
+
+    if (voltage > 2.3299f) {
+        // Segment 0: -40C to -15C approx
+        offset = 2.448116f;
+        coeffs[0] = -40.0f;
+        coeffs[1] = -277.02597f;
+        coeffs[2] = -2158.7002f;
+        coeffs[3] = -57401.977f;
+        coeffs[4] = -336871.0f;
+        coeffs[5] = 4091673.8f;
+        coeffs[6] = 32178934.0f;
+    } else if (voltage > 2.0638f) {
+        // Segment 1: -15C to 10C approx
+        offset = 2.329855f;
+        coeffs[0] = -15.0f;
+        coeffs[1] = -35.84161f;
+        coeffs[2] = 2084.3179f;
+        coeffs[3] = 16646.664f;
+        coeffs[4] = 19478.951f;
+        coeffs[5] = -196392.22f;
+        coeffs[6] = -501810.7f;
+    } else if (voltage > 1.6991f) {
+        // Segment 2: 10C to 40C approx
+        offset = 2.063768f;
+        coeffs[0] = 10.0f;
+        coeffs[1] = -125.60757f;
+        coeffs[2] = -1229.5671f;
+        coeffs[3] = -11787.77f;
+        coeffs[4] = -52521.227f;
+        coeffs[5] = -111740.266f;
+        coeffs[6] = -91734.23f;
+    } else if (voltage > 1.5020f) {
+        // Segment 3: 40C to 65C approx
+        offset = 1.699130f;
+        coeffs[0] = 40.0f;
+        coeffs[1] = -78.087166f;
+        coeffs[2] = 548.28186f;
+        coeffs[3] = 1052.2971f;
+        coeffs[4] = -9148.8f;
+        coeffs[5] = 7719.947f;
+        coeffs[6] = 212690.75f;
+    } else if (voltage > 1.3936f) {
+        // Segment 4: 65C to 90C approx
+        offset = 1.502029f;
+        coeffs[0] = 65.0f;
+        coeffs[1] = 31.022549f;
+        coeffs[2] = 10350.445f;
+        coeffs[3] = 122236.35f;
+        coeffs[4] = -205808.05f;
+        coeffs[5] = -9048350.0f;
+        coeffs[6] = -27475272.0f;
+    } else {
+        // Segment 5: 90C to 120C approx
+        offset = 1.393623f;
+        coeffs[0] = 90.0f;
+        coeffs[1] = 300.7878f;
+        coeffs[2] = 52135.133f;
+        coeffs[3] = 1725735.5f;
+        coeffs[4] = 31025744.0f;
+        coeffs[5] = 288140380.0f;
+        coeffs[6] = 1082880500.0f;
+    }
+
+    // Centered Input (Input Voltage - Offset)
+    float v_prime = voltage - offset;
+
+    // Horner's Method
+    float temp = coeffs[6];
+    for (int i = 5; i >= 0; i--) {
+        temp = temp * v_prime + coeffs[i];
+    }
+
+    return temp;
+}
+
+// Coeff 2
+ float get_temp(float y) {
+     float offset;
+     float coeffs[3];
+
+     // Clamp low range if necessary
+     if (y < 1.3246f) return 120.0f;
+
+     // Find the correct segment based on Y value
+     if (y <= 1.344348f) {
+         offset = 1.324638f;
+         coeffs[0] = 120.00000000f; // a0 (Temperature at start of segment)
+         coeffs[1] = -507.35294118f; // a1
+         coeffs[2] = -1.00934293e-09f; // a2
+     } else if (y <= 1.364058f) {
+         offset = 1.344348f;
+         coeffs[0] = 110.00000000f;
+         coeffs[1] = -507.35294118f;
+         coeffs[2] = 2.63844650e-08f;
+     } else if (y <= 1.393623f) {
+         offset = 1.364058f;
+         coeffs[0] = 100.00000000f;
+         coeffs[1] = -591.91176471f;
+         coeffs[2] = 8.58023356e+03f;
+     } else if (y <= 1.423188f) {
+         offset = 1.393623f;
+         coeffs[0] = 90.00000000f;
+         coeffs[1] = -591.91176471f;
+         coeffs[2] = 8.58023356e+03f;
+     } else if (y <= 1.472464f) {
+         offset = 1.423188f;
+         coeffs[0] = 80.00000000f;
+         coeffs[1] = -118.38235294f;
+         coeffs[2] = -1.71604671e+03f;
+     } else if (y <= 1.531594f) {
+         offset = 1.472464f;
+         coeffs[0] = 70.00000000f;
+         coeffs[1] = -169.11764706f;
+         coeffs[2] = -9.39198450e-10f;
+     } else if (y <= 1.610435f) {
+         offset = 1.531594f;
+         coeffs[0] = 60.00000000f;
+         coeffs[1] = -126.83823529f;
+         coeffs[2] = 4.12100710e-10f;
+     } else if (y <= 1.699130f) {
+         offset = 1.610435f;
+         coeffs[0] = 50.00000000f;
+         coeffs[1] = -138.11274510f;
+         coeffs[2] = 2.86007785e+02f;
+     } else if (y <= 1.817391f) {
+         offset = 1.699130f;
+         coeffs[0] = 40.00000000f;
+         coeffs[1] = -84.55882353f;
+         coeffs[2] = 2.83721015e-12f;
+     } else if (y <= 1.935652f) {
+         offset = 1.817391f;
+         coeffs[0] = 30.00000000f;
+         coeffs[1] = -84.55882353f;
+         coeffs[2] = 1.14084683e-10f;
+     } else if (y <= 2.063768f) {
+         offset = 1.935652f;
+         coeffs[0] = 20.00000000f;
+         coeffs[1] = -65.97446671f;
+         coeffs[2] = -9.42882809e+01f;
+     } else if (y <= 2.182029f) {
+         offset = 2.063768f;
+         coeffs[0] = 10.00000000f;
+         coeffs[1] = -84.55882353f;
+         coeffs[2] = 9.00682666e-13f;
+     } else if (y <= 2.280580f) {
+         offset = 2.182029f;
+         coeffs[0] = 0.00000000f;
+         coeffs[1] = -59.19117647f;
+         coeffs[2] = -4.29011678e+02f;
+     } else if (y <= 2.359420f) {
+         offset = 2.280580f;
+         coeffs[0] = -10.00000000f;
+         coeffs[1] = -59.19117647f;
+         coeffs[2] = -8.58023356e+02f;
+     } else if (y <= 2.408696f) {
+         offset = 2.359420f;
+         coeffs[0] = -20.00000000f;
+         coeffs[1] = -118.38235294f;
+         coeffs[2] = -1.71604671e+03f;
+     } else {
+         // Last Segment (> 2.408696)
+         offset = 2.408696f;
+         coeffs[0] = -30.00000000f;
+         coeffs[1] = -253.67647059f;
+         coeffs[2] = 5.03436447e-12f;
+     }
+
+     // Compute Quadratic: Temp = a2*(y')^2 + a1*(y') + a0
+     float y_p = y - offset;
+     return coeffs[2] * y_p * y_p + coeffs[1] * y_p + coeffs[0];
+ }

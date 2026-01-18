@@ -1,0 +1,16 @@
+../Core/ADBMS6830/src/serialPrintResult.c:64:6:printWriteConfig	6
+../Core/ADBMS6830/src/serialPrintResult.c:134:6:printReadConfig	6
+../Core/ADBMS6830/src/serialPrintResult.c:232:6:printVoltages	28
+../Core/ADBMS6830/src/serialPrintResult.c:351:6:printStatus	9
+../Core/ADBMS6830/src/serialPrintResult.c:571:6:printDeviceSID	3
+../Core/ADBMS6830/src/serialPrintResult.c:612:6:printWritePwmDutyCycle	5
+../Core/ADBMS6830/src/serialPrintResult.c:671:6:printReadPwmDutyCycle	5
+../Core/ADBMS6830/src/serialPrintResult.c:750:6:printWriteCommData	3
+../Core/ADBMS6830/src/serialPrintResult.c:787:6:printReadCommData	3
+../Core/ADBMS6830/src/serialPrintResult.c:829:6:printDiagnosticTestResult	13
+../Core/ADBMS6830/src/serialPrintResult.c:913:6:diagnosticTestResultPrint	2
+../Core/ADBMS6830/src/serialPrintResult.c:943:6:printOpenWireTestResult	10
+../Core/ADBMS6830/src/serialPrintResult.c:1004:6:openWireResultPrint	2
+../Core/ADBMS6830/src/serialPrintResult.c:1027:6:printPollAdcConvTime	1
+../Core/ADBMS6830/src/serialPrintResult.c:1043:6:printMenu	1
+../Core/ADBMS6830/src/serialPrintResult.c:1088:7:getVoltage	1

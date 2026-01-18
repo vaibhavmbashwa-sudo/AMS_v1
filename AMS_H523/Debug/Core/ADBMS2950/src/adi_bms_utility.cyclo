@@ -1,0 +1,11 @@
+../Core/ADBMS2950/src/adi_bms_utility.c:116:10:ad29Pec15_Calc	2
+../Core/ADBMS2950/src/adi_bms_utility.c:148:10:ad29pec10_calc	7
+../Core/ADBMS2950/src/adi_bms_utility.c:205:10:pec10_calc_modular	8
+../Core/ADBMS2950/src/adi_bms_utility.c:261:10:pec10_calc_int	3
+../Core/ADBMS2950/src/adi_bms_utility.c:300:6:ad29spiSendCmd	4
+../Core/ADBMS2950/src/adi_bms_utility.c:347:6:ad29spiReadData	5
+../Core/ADBMS2950/src/adi_bms_utility.c:429:6:ad29spiWriteData	3
+../Core/ADBMS2950/src/adi_bms_utility.c:508:6:ad29BmsReadData	52
+../Core/ADBMS2950/src/adi_bms_utility.c:780:6:ad29BmsWriteData	22
+../Core/ADBMS2950/src/adi_bms_utility.c:919:10:ad29BmsPollAdc	2
+../Core/ADBMS2950/src/adi_bms_utility.c:960:9:adBms2950_CCErrorCheck	2

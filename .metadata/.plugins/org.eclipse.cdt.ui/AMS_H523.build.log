@@ -1,0 +1,17 @@
+15:11:48 **** Incremental Build of configuration Debug for project AMS_H523 ****
+make -j7 all 
+arm-none-eabi-gcc "../Core/ADBMS6830/src/custom_calc_func.c" -mcpu=cortex-m33 -std=gnu11 -g3 -DDEBUG -DUSE_HAL_DRIVER -DSTM32H523xx -c -I../Core/Inc -I/Users/vaibhavmb/Documents/AMS/AMS_H523/Core/ADBMS6830/inc -I/Users/vaibhavmb/Documents/AMS/AMS_H523/Core/ADBMS2950/inc -I../Drivers/STM32H5xx_HAL_Driver/Inc -I../Drivers/STM32H5xx_HAL_Driver/Inc/Legacy -I../Drivers/CMSIS/Device/ST/STM32H5xx/Include -I../Drivers/CMSIS/Include -O0 -ffunction-sections -fdata-sections -Wall -fstack-usage -fcyclomatic-complexity -MMD -MP -MF"Core/ADBMS6830/src/custom_calc_func.d" -MT"Core/ADBMS6830/src/custom_calc_func.o" --specs=nano.specs -mfpu=fpv5-sp-d16 -mfloat-abi=hard -mthumb -o "Core/ADBMS6830/src/custom_calc_func.o"
+arm-none-eabi-gcc -o "AMS_H523.elf" @"objects.list"   -mcpu=cortex-m33 -T"/Users/vaibhavmb/Documents/AMS/AMS_H523/STM32H523CETX_FLASH.ld" --specs=nosys.specs -Wl,-Map="AMS_H523.map" -Wl,--gc-sections -static -u _printf_float --specs=nano.specs -mfpu=fpv5-sp-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
+Finished building target: AMS_H523.elf
+ 
+arm-none-eabi-size  AMS_H523.elf 
+arm-none-eabi-objdump -h -S AMS_H523.elf  > "AMS_H523.list"
+   text	   data	    bss	    dec	    hex	filename
+ 125180	    624	   7208	 133012	  20794	AMS_H523.elf
+Finished building: default.size.stdout
+ 
+Finished building: AMS_H523.list
+ 
+
+15:11:50 Build Finished. 0 errors, 0 warnings. (took 1s.853ms)
+

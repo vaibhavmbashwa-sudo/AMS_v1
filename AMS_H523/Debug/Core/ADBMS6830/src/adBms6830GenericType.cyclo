@@ -1,0 +1,14 @@
+../Core/ADBMS6830/src/adBms6830GenericType.c:104:10:Pec15_Calc	2
+../Core/ADBMS6830/src/adBms6830GenericType.c:120:10:pec10_calc	7
+../Core/ADBMS6830/src/adBms6830GenericType.c:170:10:adi_pec10_calc_table	5
+../Core/ADBMS6830/src/adBms6830GenericType.c:210:10:CalcPEC10	5
+../Core/ADBMS6830/src/adBms6830GenericType.c:248:6:spiSendCmd	1
+../Core/ADBMS6830/src/adBms6830GenericType.c:283:6:spiReadData	5
+../Core/ADBMS6830/src/adBms6830GenericType.c:369:6:adBmsReadData	51
+../Core/ADBMS6830/src/adBms6830GenericType.c:625:6:spiWriteData	3
+../Core/ADBMS6830/src/adBms6830GenericType.c:703:6:adBmsWriteData	21
+../Core/ADBMS6830/src/adBms6830GenericType.c:820:10:adBmsPollAdc	2
+../Core/ADBMS6830/src/adBms6830GenericType.c:867:6:adBms6830_Adcv	1
+../Core/ADBMS6830/src/adBms6830GenericType.c:901:6:adBms6830_Adsv	1
+../Core/ADBMS6830/src/adBms6830GenericType.c:933:6:adBms6830_Adax	1
+../Core/ADBMS6830/src/adBms6830GenericType.c:960:6:adBms6830_Adax2	1

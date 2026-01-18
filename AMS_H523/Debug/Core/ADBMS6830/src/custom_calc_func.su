@@ -1,0 +1,6 @@
+../Core/ADBMS6830/src/custom_calc_func.c:65:7:getDCIR	72	static
+../Core/ADBMS6830/src/custom_calc_func.c:110:7:getSOC	96	static
+../Core/ADBMS6830/src/custom_calc_func.c:181:10:reverse4bits	16	static
+../Core/ADBMS6830/src/custom_calc_func.c:187:8:v2Temp	24	static
+../Core/ADBMS6830/src/custom_calc_func.c:202:7:get_temp_from_voltage	64	static
+../Core/ADBMS6830/src/custom_calc_func.c:284:8:get_temp	40	static

@@ -1,0 +1,16 @@
+../Core/ADBMS2950/src/pal.c:287:6:ad29Delay_ms	16	static
+../Core/ADBMS2950/src/pal.c:310:6:ad29Delay_us	16	static
+../Core/ADBMS2950/src/pal.c:330:6:ad29BmsCsLow	8	static
+../Core/ADBMS2950/src/pal.c:346:6:ad29BmsCsHigh	8	static
+../Core/ADBMS2950/src/pal.c:366:6:ad29spiWriteBytes	16	static
+../Core/ADBMS2950/src/pal.c:388:6:ad29spiWriteReadBytes	24	static
+../Core/ADBMS2950/src/pal.c:409:6:ad29spiReadBytes	16	static
+../Core/ADBMS2950/src/pal.c:427:6:ad29BmsRawWriteRead	24	static
+../Core/ADBMS2950/src/pal.c:446:6:ad29startTimer	8	static
+../Core/ADBMS2950/src/pal.c:463:6:ad29stopTimer	8	static
+../Core/ADBMS2950/src/pal.c:480:10:ad29getTimCount	16	static
+../Core/ADBMS2950/src/pal.c:502:6:ad29BmsWakeupIc	24	static
+../Core/ADBMS2950/src/pal.c:542:7:GPIO_WritePin	16	static
+../Core/ADBMS2950/src/pal.c:568:6:ad29spiTransmit	24	static
+../Core/ADBMS2950/src/pal.c:599:6:ad29spiTransmitReceive	32	static
+../Core/ADBMS2950/src/pal.c:627:6:ad29spiReceive	24	static

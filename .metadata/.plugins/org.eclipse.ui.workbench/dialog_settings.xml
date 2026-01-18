@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<section name="Workbench">
+	<section name="WorkbenchPreferenceDialog.dialogBounds">
+		<item key="DIALOG_X_ORIGIN" value="0"/>
+		<item key="DIALOG_Y_ORIGIN" value="1"/>
+		<item key="DIALOG_WIDTH" value="811"/>
+		<item key="DIALOG_HEIGHT" value="699"/>
+		<item key="DIALOG_FONT_NAME" value="1|.AppleSystemUIFont|11.0|0|COCOA|1|.AppleSystemUIFont"/>
+	</section>
+	<section name="NewImportWizardAction">
+		<section name="STM32ProjectCreationImportWizard.dialogBounds">
+			<item key="DIALOG_X_ORIGIN" value="442"/>
+			<item key="DIALOG_Y_ORIGIN" value="241"/>
+			<item key="DIALOG_WIDTH" value="586"/>
+			<item key="DIALOG_HEIGHT" value="440"/>
+			<item key="DIALOG_FONT_NAME" value="1|.AppleSystemUIFont|11.0|0|COCOA|1|.AppleSystemUIFont"/>
+		</section>
+	</section>
+	<section name="ImportExportAction">
+		<item key="ImportExportPage.STORE_SELECTED_IMPORT_WIZARD_ID" value="org.eclipse.ui.wizards.import.FileSystem"/>
+		<list key="ImportExportPage.STORE_EXPANDED_IMPORT_CATEGORIES">
+			<item value="org.eclipse.ui.Basic"/>
+		</list>
+		<section name="ImportExportWizard.dialogBounds">
+			<item key="DIALOG_X_ORIGIN" value="442"/>
+			<item key="DIALOG_Y_ORIGIN" value="138"/>
+			<item key="DIALOG_WIDTH" value="586"/>
+			<item key="DIALOG_HEIGHT" value="550"/>
+			<item key="DIALOG_FONT_NAME" value="1|.AppleSystemUIFont|11.0|0|COCOA|1|.AppleSystemUIFont"/>
+		</section>
+	</section>
+	<section name="FileSystemImportWizard">
+		<item key="WizardFileSystemResourceImportPage1.STORE_OVERWRITE_EXISTING_RESOURCES_ID" value="false"/>
+		<item key="WizardFileSystemResourceImportPage1.STORE_CREATE_CONTAINER_STRUCTURE_ID" value="false"/>
+		<list key="WizardFileSystemResourceImportPage1.STORE_SOURCE_NAMES_ID">
+			<item value="/Users/vaibhavmb/Documents/AMS"/>
+			<item value="/Users/vaibhavmb/Documents/AMS/ADBMS6830"/>
+			<item value="/Users/vaibhavmb/Documents/AMS_testing/L552_AMS/Core/ADBMS6830"/>
+		</list>
+		<section name="FileSystemImportWizard.dialogBounds">
+			<item key="DIALOG_X_ORIGIN" value="442"/>
+			<item key="DIALOG_Y_ORIGIN" value="138"/>
+			<item key="DIALOG_WIDTH" value="691"/>
+			<item key="DIALOG_HEIGHT" value="614"/>
+			<item key="DIALOG_FONT_NAME" value="1|.AppleSystemUIFont|11.0|0|COCOA|1|.AppleSystemUIFont"/>
+		</section>
+	</section>
+</section>
