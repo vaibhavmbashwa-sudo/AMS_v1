@@ -1,1 +1,1 @@
-# sample
+# AMS firmware
