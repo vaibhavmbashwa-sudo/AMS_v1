@@ -117,7 +117,7 @@ void Error_Handler(void);
 #define SEGM_H
 typedef struct {
 	float IC_T;
-	float CELL_V[12];
+	float CELL_V[12] ;
 	float CELL_T[12];
 	float SOC_OCV[12];
 	float SOC_CC[12];
@@ -126,7 +126,7 @@ typedef struct {
 	uint16_t BAL_STAT;
 } SEG_PARAMS;
 
-extern SEG_PARAMS seg0, SEG1, SEG2, SEG3, SEG4, SEG5;
+extern SEG_PARAMS SEG1, SEG2, SEG3, SEG4, SEG5;
 
 #endif
 
@@ -146,7 +146,10 @@ extern uint8_t AMS_SAFE;
 extern uint8_t ERR_CODES;
 extern float AMS_Charg_I;
 extern float AMS_Charg_V;
-
+extern uint8_t SDC_FLAG ;
+extern uint8_t SDC_V_CHECK ;
+extern uint8_t SDC_Temp_CHECK;
+extern uint8_t FAN_CTRL;
 //extern uint8_t MCU_junction_temp;
 extern float tV;
 extern uint8_t UpdateEve_MCUtemp;

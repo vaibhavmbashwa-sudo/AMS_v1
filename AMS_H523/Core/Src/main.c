@@ -32,6 +32,7 @@
 #include "math.h"
 #include "application.h"
 #include "common.h"
+
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -54,7 +55,7 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
-SEG_PARAMS seg0, SEG1,SEG2,SEG3,SEG4,SEG5;
+SEG_PARAMS  SEG1,SEG2,SEG3,SEG4,SEG5;
 
 
 SEG_BSTAT SEG1_B, SEG2_B, SEG3_B, SEG4_B, SEG5_B;
@@ -73,6 +74,11 @@ uint8_t UpdateEve_MCUtemp = 0 ;
 uint16_t ADC_RES[2];
 float MCUTemperature, V_Sense, V_Ref;
 
+
+uint8_t SDC_Temp_CHECK = 0;
+uint8_t SDC_FLAG =1;
+uint8_t SDC_V_CHECK = 1;
+uint8_t FAN_CTRL=0;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -101,7 +107,8 @@ int main(void)
   /* MCU Configuration--------------------------------------------------------*/
 
   /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
-  HAL_Init();
+
+	HAL_Init();
 
   /* USER CODE BEGIN Init */
 
@@ -131,39 +138,75 @@ int main(void)
   MX_TIM4_Init();
   MX_ADC1_Init();
   /* USER CODE BEGIN 2 */
-//  HAL_GPIO_WritePin(CS2_GPIO_Port,CS2_Pin,GPIO_PIN_SET);
+  HAL_GPIO_WritePin(CS2_GPIO_Port,CS2_Pin,GPIO_PIN_SET);
   HAL_TIM_Base_Start(&htim3);
 //  HAL_TIM_Base_Start_IT(&htim4);
-  HAL_ADCEx_Calibration_Start(&hadc1,ADC_SINGLE_ENDED);
-  HAL_ADC_Start_DMA(&hadc1, (uint32_t*)ADC_RES, 2);   // Start ADC Conversion for MCU temp
-
+////  HAL_ADCEx_Calibration_Start(&hadc1,ADC_SINGLE_ENDED);
+////  HAL_ADC_Start_DMA(&hadc1, (uint32_t*)ADC_RES, 2);   // Start ADC Conversion for MCU temp
+////
   HAL_GPIO_WritePin(monStat_GPIO_Port, monStat_Pin, GPIO_PIN_SET);
-  //HAL_GPIO_WritePin(CS2_GPIO_Port, CS2_Pin, GPIO_PIN_SET);
-  init_contCurrentConv();
+//
+//  HAL_GPIO_WritePin(AMS_Fault_GPIO_Port, AMS_Fault_Pin, GPIO_PIN_SET);
+  HAL_GPIO_WritePin(CS2_GPIO_Port, CS2_Pin, GPIO_PIN_SET);
+//  init_contCurrentConv();
+//  CAN_Data_Init();
+//  HAL_Delay(1000);
+//  canFraming();
   adbms_init_loop();
-  HAL_TIM_Base_Start_IT(&htim3);
+//  HAL_TIM_Base_Start_IT(&htim3);
+//  canFraming();
+//  cantestFraming();
   /* USER CODE END 2 */
 
-  /* Infinite loop */
+
   /* USER CODE BEGIN WHILE */
   while (1)
   {
 //	  while(1)
-	  if(balancingState==0)
-	  	  {
+//	  if(balancingState==0)
+//	  	  {
+	  if(SDC_FLAG){
+		  HAL_GPIO_WritePin(AMS_Fault_GPIO_Port, AMS_Fault_Pin, GPIO_PIN_SET);
+	  } else {
+		  HAL_GPIO_WritePin(AMS_Fault_GPIO_Port, AMS_Fault_Pin, GPIO_PIN_RESET);
+	  }
+
+	  if(FAN_CTRL){
+	  		  HAL_GPIO_WritePin(Fan4Ctrl_GPIO_Port, Fan4Ctrl_Pin, GPIO_PIN_SET);
+	  		HAL_GPIO_WritePin(Fan1Ctrl_GPIO_Port, Fan1Ctrl_Pin, GPIO_PIN_SET);
+	  		HAL_GPIO_WritePin(Fan2Ctrl_GPIO_Port, Fan2Ctrl_Pin, GPIO_PIN_SET);
+	  		HAL_GPIO_WritePin(Fan3Ctrl_GPIO_Port, Fan3Ctrl_Pin, GPIO_PIN_SET);
+	  		HAL_GPIO_WritePin(Fan5Ctrl_GPIO_Port, Fan5Ctrl_Pin, GPIO_PIN_SET);
+	  	  } else {
+	  		  HAL_GPIO_WritePin(Fan4Ctrl_GPIO_Port, Fan4Ctrl_Pin, GPIO_PIN_RESET);
+	  		HAL_GPIO_WritePin(Fan1Ctrl_GPIO_Port, Fan1Ctrl_Pin, GPIO_PIN_SET);
+	  			  		HAL_GPIO_WritePin(Fan2Ctrl_GPIO_Port, Fan2Ctrl_Pin, GPIO_PIN_RESET);
+	  			  		HAL_GPIO_WritePin(Fan3Ctrl_GPIO_Port, Fan3Ctrl_Pin, GPIO_PIN_RESET);
+	  			  		HAL_GPIO_WritePin(Fan5Ctrl_GPIO_Port, Fan5Ctrl_Pin, GPIO_PIN_RESET);
+	  	  }
+
 		  readI();
 		  ad29Delay_us(2500);
 
+
+	  cantestFraming();
+
+//	   		CAN_DataTX_1s();
+
+
+
 	  	  adbms_readCell_loop();
 	  	  adbmsReinitMain();
-	  	  adbms_readTempToggle();
+//	  	HAL_Delay(50);
+//	  	  adbms_readTempToggle();
+//
+	  	  adBms_delayUs(3000);
+//	  	CAN_DataTX_1s();
+//	  	  }
+//	  else
+//	  	  {
 
-	  	adBms_delayUs(50000);
-	  	  }
-	  else
-	  	  {
-
-	  	  }
+//	  	  }
 //	  	  HAL_Delay(50);
     /* USER CODE END WHILE */
 
@@ -199,13 +242,13 @@ void SystemClock_Config(void)
   RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
   RCC_OscInitStruct.PLL.PLLSource = RCC_PLL1_SOURCE_HSI;
   RCC_OscInitStruct.PLL.PLLM = 4;
-  RCC_OscInitStruct.PLL.PLLN = 31;
+  RCC_OscInitStruct.PLL.PLLN = 30;
   RCC_OscInitStruct.PLL.PLLP = 2;
-  RCC_OscInitStruct.PLL.PLLQ = 4;
+  RCC_OscInitStruct.PLL.PLLQ = 3;
   RCC_OscInitStruct.PLL.PLLR = 2;
   RCC_OscInitStruct.PLL.PLLRGE = RCC_PLL1_VCIRANGE_3;
   RCC_OscInitStruct.PLL.PLLVCOSEL = RCC_PLL1_VCORANGE_WIDE;
-  RCC_OscInitStruct.PLL.PLLFRACN = 2048;
+  RCC_OscInitStruct.PLL.PLLFRACN = 0;
   if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
   {
     Error_Handler();
@@ -242,18 +285,7 @@ void PeriphCommonClock_Config(void)
 
   /** Initializes the peripherals clock
   */
-  PeriphClkInitStruct.PeriphClockSelection = RCC_PERIPHCLK_FDCAN|RCC_PERIPHCLK_SPI1
-                              |RCC_PERIPHCLK_SPI3;
-  PeriphClkInitStruct.PLL2.PLL2Source = RCC_PLL2_SOURCE_CSI;
-  PeriphClkInitStruct.PLL2.PLL2M = 1;
-  PeriphClkInitStruct.PLL2.PLL2N = 40;
-  PeriphClkInitStruct.PLL2.PLL2P = 2;
-  PeriphClkInitStruct.PLL2.PLL2Q = 2;
-  PeriphClkInitStruct.PLL2.PLL2R = 2;
-  PeriphClkInitStruct.PLL2.PLL2RGE = RCC_PLL2_VCIRANGE_2;
-  PeriphClkInitStruct.PLL2.PLL2VCOSEL = RCC_PLL2_VCORANGE_WIDE;
-  PeriphClkInitStruct.PLL2.PLL2FRACN = 0;
-  PeriphClkInitStruct.PLL2.PLL2ClockOut = RCC_PLL2_DIVQ;
+  PeriphClkInitStruct.PeriphClockSelection = RCC_PERIPHCLK_SPI1|RCC_PERIPHCLK_SPI3;
   PeriphClkInitStruct.PLL3.PLL3Source = RCC_PLL3_SOURCE_CSI;
   PeriphClkInitStruct.PLL3.PLL3M = 1;
   PeriphClkInitStruct.PLL3.PLL3N = 64;
@@ -264,7 +296,6 @@ void PeriphCommonClock_Config(void)
   PeriphClkInitStruct.PLL3.PLL3VCOSEL = RCC_PLL3_VCORANGE_MEDIUM;
   PeriphClkInitStruct.PLL3.PLL3FRACN = 0;
   PeriphClkInitStruct.PLL3.PLL3ClockOut = RCC_PLL3_DIVP;
-  PeriphClkInitStruct.FdcanClockSelection = RCC_FDCANCLKSOURCE_PLL2Q;
   PeriphClkInitStruct.Spi1ClockSelection = RCC_SPI1CLKSOURCE_PLL3P;
   PeriphClkInitStruct.Spi3ClockSelection = RCC_SPI3CLKSOURCE_PLL3P;
   if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInitStruct) != HAL_OK)
@@ -293,9 +324,9 @@ void HAL_TIM_PeriodElapsedCallback (TIM_HandleTypeDef *htim)
 {
  	if (htim == &htim4) {
 // 		all++;
- 		canFraming();
+// 		canFraming();
+//
 
- 		CAN_DataTX_1s();
  	}
 
 }

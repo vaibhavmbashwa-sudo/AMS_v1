@@ -41,6 +41,10 @@ SEG_PARAMS *seg_params_list[] = {
 		&SEG4,
 		&SEG5
 };
+
+
+
+
 /**
  *******************************************************************************
  * Function: printWriteConfig
@@ -229,6 +233,7 @@ void printReadConfig(uint8_t tIC, cell_asic *IC, TYPE type, GRP grp)
  *
  *******************************************************************************
 */
+
 void printVoltages(uint8_t tIC, cell_asic *IC, TYPE type)
 {
   float voltage;
@@ -242,7 +247,7 @@ void printVoltages(uint8_t tIC, cell_asic *IC, TYPE type)
   else if (type == RAux){channel = RAUX;}
   for(uint8_t ic = 0; ic < tIC; ic++)
   {
-//    printf("IC%d:",(ic+1));
+    printf("IC%d:",(ic+1));
     for(uint8_t index = 0; index < channel; index++)
     {
       if(type == Cell){ temp = IC[ic].cell.c_codes[index]; }
@@ -253,23 +258,33 @@ void printVoltages(uint8_t tIC, cell_asic *IC, TYPE type)
       else if(type == RAux){ temp = IC[ic].raux.ra_codes[index]; }
       voltage = getVoltage(temp);
 
-      SEG_PARAMS *s = seg_params_list[ic - 1]; // segment array struct
+      SEG_PARAMS *s = seg_params_list[ic]; // segment array struct
 
       if(type == Cell)
       {
-//        printf("C%d=%fV,",(index+1), voltage);
+        printf("C%d=%fV,",(index+1), voltage);
 
         s->CELL_V[index]=voltage; // cell voltages array struct
 
+        if(SDC_V_CHECK){
+        	if( (voltage<=2.9) | (voltage>=4.2)) {
+        	        	SDC_FLAG = 0;
+        	        }
+        	else {
+        		SDC_FLAG = 1;
+        	}
+        }
+
+
         if(index == (channel-1))
         {
-//          printf("CCount:%d,",IC[ic].cccrc.cmd_cntr);
-//          printf("PECError:%d",IC[ic].cccrc.cell_pec);
+          printf("CCount:%d,",IC[ic].cccrc.cmd_cntr);
+          printf("PECError:%d",IC[ic].cccrc.cell_pec);
         }
       }
       else if(type == AvgCell)
       {
-//        printf("AC%d=%fV,",(index+1), voltage);
+        printf("AC%d=%fV,",(index+1), voltage);
         if(index == (channel-1))
         {
           printf("CCount:%d,",IC[ic].cccrc.cmd_cntr);

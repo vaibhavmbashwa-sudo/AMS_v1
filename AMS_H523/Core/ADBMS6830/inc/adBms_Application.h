@@ -93,7 +93,7 @@ void adBms6830_read_rdasall_voltage(uint8_t tIC, cell_asic *ic);
 // Temperature toggling
 void adBms6830_setgpo_69(uint8_t tIC, cell_asic *ic);
 //Discharge toggling
-void adBms6830_togDischarge(uint8_t tIC, cell_asic *ic, uint16_t dischCell, uint8_t dischEN);
+//void adBms6830_togDischarge(uint8_t tIC, cell_asic *ic, uint16_t dischCell, uint8_t dischEN);
 // Custom fns
 float initialSOC(float ocv);
 void coulombSOC(float soc, float I, float batCapacity, float timDelta);

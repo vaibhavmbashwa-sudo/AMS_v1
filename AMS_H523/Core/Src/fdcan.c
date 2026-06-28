@@ -50,19 +50,19 @@ void MX_FDCAN1_Init(void)
   /* USER CODE END FDCAN1_Init 1 */
   hfdcan1.Instance = FDCAN1;
   hfdcan1.Init.ClockDivider = FDCAN_CLOCK_DIV1;
-  hfdcan1.Init.FrameFormat = FDCAN_FRAME_CLASSIC;
+  hfdcan1.Init.FrameFormat = FDCAN_FRAME_FD_BRS;
   hfdcan1.Init.Mode = FDCAN_MODE_NORMAL;
   hfdcan1.Init.AutoRetransmission = DISABLE;
   hfdcan1.Init.TransmitPause = DISABLE;
   hfdcan1.Init.ProtocolException = DISABLE;
-  hfdcan1.Init.NominalPrescaler = 16;
-  hfdcan1.Init.NominalSyncJumpWidth = 1;
-  hfdcan1.Init.NominalTimeSeg1 = 1;
-  hfdcan1.Init.NominalTimeSeg2 = 1;
+  hfdcan1.Init.NominalPrescaler = 1;
+  hfdcan1.Init.NominalSyncJumpWidth = 21;
+  hfdcan1.Init.NominalTimeSeg1 = 138;
+  hfdcan1.Init.NominalTimeSeg2 = 21;
   hfdcan1.Init.DataPrescaler = 1;
-  hfdcan1.Init.DataSyncJumpWidth = 1;
-  hfdcan1.Init.DataTimeSeg1 = 1;
-  hfdcan1.Init.DataTimeSeg2 = 1;
+  hfdcan1.Init.DataSyncJumpWidth = 9;
+  hfdcan1.Init.DataTimeSeg1 = 10;
+  hfdcan1.Init.DataTimeSeg2 = 9;
   hfdcan1.Init.StdFiltersNbr = 0;
   hfdcan1.Init.ExtFiltersNbr = 0;
   hfdcan1.Init.TxFifoQueueMode = FDCAN_TX_FIFO_OPERATION;
@@ -88,19 +88,19 @@ void MX_FDCAN2_Init(void)
   /* USER CODE END FDCAN2_Init 1 */
   hfdcan2.Instance = FDCAN2;
   hfdcan2.Init.ClockDivider = FDCAN_CLOCK_DIV1;
-  hfdcan2.Init.FrameFormat = FDCAN_FRAME_CLASSIC;
+  hfdcan2.Init.FrameFormat = FDCAN_FRAME_FD_BRS;
   hfdcan2.Init.Mode = FDCAN_MODE_NORMAL;
   hfdcan2.Init.AutoRetransmission = DISABLE;
   hfdcan2.Init.TransmitPause = DISABLE;
   hfdcan2.Init.ProtocolException = DISABLE;
-  hfdcan2.Init.NominalPrescaler = 16;
-  hfdcan2.Init.NominalSyncJumpWidth = 1;
-  hfdcan2.Init.NominalTimeSeg1 = 1;
-  hfdcan2.Init.NominalTimeSeg2 = 1;
+  hfdcan2.Init.NominalPrescaler = 1;
+  hfdcan2.Init.NominalSyncJumpWidth = 21;
+  hfdcan2.Init.NominalTimeSeg1 = 138;
+  hfdcan2.Init.NominalTimeSeg2 = 21;
   hfdcan2.Init.DataPrescaler = 1;
-  hfdcan2.Init.DataSyncJumpWidth = 1;
-  hfdcan2.Init.DataTimeSeg1 = 1;
-  hfdcan2.Init.DataTimeSeg2 = 1;
+  hfdcan2.Init.DataSyncJumpWidth = 9;
+  hfdcan2.Init.DataTimeSeg1 = 10;
+  hfdcan2.Init.DataTimeSeg2 = 9;
   hfdcan2.Init.StdFiltersNbr = 0;
   hfdcan2.Init.ExtFiltersNbr = 0;
   hfdcan2.Init.TxFifoQueueMode = FDCAN_TX_FIFO_OPERATION;
@@ -120,11 +120,22 @@ void HAL_FDCAN_MspInit(FDCAN_HandleTypeDef* fdcanHandle)
 {
 
   GPIO_InitTypeDef GPIO_InitStruct = {0};
+  RCC_PeriphCLKInitTypeDef PeriphClkInitStruct = {0};
   if(fdcanHandle->Instance==FDCAN1)
   {
   /* USER CODE BEGIN FDCAN1_MspInit 0 */
 
   /* USER CODE END FDCAN1_MspInit 0 */
+
+  /** Initializes the peripherals clock
+  */
+    PeriphClkInitStruct.PeriphClockSelection = RCC_PERIPHCLK_FDCAN;
+    PeriphClkInitStruct.FdcanClockSelection = RCC_FDCANCLKSOURCE_PLL1Q;
+    if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInitStruct) != HAL_OK)
+    {
+      Error_Handler();
+    }
+
     /* FDCAN1 clock enable */
     HAL_RCC_FDCAN_CLK_ENABLED++;
     if(HAL_RCC_FDCAN_CLK_ENABLED==1){
@@ -152,6 +163,16 @@ void HAL_FDCAN_MspInit(FDCAN_HandleTypeDef* fdcanHandle)
   /* USER CODE BEGIN FDCAN2_MspInit 0 */
 
   /* USER CODE END FDCAN2_MspInit 0 */
+
+  /** Initializes the peripherals clock
+  */
+    PeriphClkInitStruct.PeriphClockSelection = RCC_PERIPHCLK_FDCAN;
+    PeriphClkInitStruct.FdcanClockSelection = RCC_FDCANCLKSOURCE_PLL1Q;
+    if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInitStruct) != HAL_OK)
+    {
+      Error_Handler();
+    }
+
     /* FDCAN2 clock enable */
     HAL_RCC_FDCAN_CLK_ENABLED++;
     if(HAL_RCC_FDCAN_CLK_ENABLED==1){
@@ -227,13 +248,16 @@ void HAL_FDCAN_MspDeInit(FDCAN_HandleTypeDef* fdcanHandle)
 void canFraming(void)
 {
 	canStat.datas[0] = (uint8_t) round(MCUTemperature*4); // need to be verified
-	canStat.datas[1] = ERR_CODES;
-
+//	canStat.datas[1] = ERR_CODES;
+	canStat.datas[1] = 0x1;
 	for (int i=0; i<=11; i++)
 	{
 		canSeg1.datas[i] = (uint8_t) round((SEG1.CELL_V[i])*50) ;
+//		canSeg1.datas[i] = (uint8_t) i++ ;
 		canSeg1.datas[i+12] = (uint8_t) round((SEG1.CELL_T[i])*4) ;
 	}
+
+
 
 
 	for (int i=0; i<=11; i++)
@@ -297,91 +321,109 @@ void canFraming(void)
 
 void CAN_Data_Init (void)
 {
-	if(HAL_FDCAN_Start(&hfdcan1)!= HAL_OK) {
-		Error_Handler();
-	}
+//	if(HAL_FDCAN_Start(&hfdcan1)!= HAL_OK) {
+//		Error_Handler();
+//	}
+
 
 
 	canSeg1.header.Identifier = 0x0E1;
 	canSeg1.header.IdType = FDCAN_STANDARD_ID;
 	canSeg1.header.TxFrameType = FDCAN_DATA_FRAME;
 	canSeg1.header.DataLength = FDCAN_DLC_BYTES_24;
-	canSeg1.header.ErrorStateIndicator = FDCAN_ESI_ACTIVE;
-	canSeg1.header.BitRateSwitch = FDCAN_BRS_OFF;
+//	canSeg1.header.ErrorStateIndicator = FDCAN_ESI_ACTIVE;
+	canSeg1.header.BitRateSwitch = FDCAN_BRS_ON;
 	canSeg1.header.FDFormat = FDCAN_FD_CAN;
-	canSeg1.header.TxEventFifoControl = FDCAN_NO_TX_EVENTS;
-	canSeg1.header.MessageMarker = 0;
+
+
+//	canSeg1.header.TxEventFifoControl = FDCAN_NO_TX_EVENTS;
+//	canSeg1.header.MessageMarker = 0;
 
 	canSeg2.header.Identifier = 0x0E2;
 	canSeg2.header.IdType = FDCAN_STANDARD_ID;
 	canSeg2.header.TxFrameType = FDCAN_DATA_FRAME;
 	canSeg2.header.DataLength = FDCAN_DLC_BYTES_24;
-	canSeg2.header.ErrorStateIndicator = FDCAN_ESI_ACTIVE;
+//	canSeg2.header.ErrorStateIndicator = FDCAN_ESI_ACTIVE;
 	canSeg2.header.BitRateSwitch = FDCAN_BRS_OFF;
 	canSeg2.header.FDFormat = FDCAN_FD_CAN;
-	canSeg2.header.TxEventFifoControl = FDCAN_NO_TX_EVENTS;
-	canSeg2.header.MessageMarker = 0;
+//	canSeg2.header.TxEventFifoControl = FDCAN_NO_TX_EVENTS;
+//	canSeg2.header.MessageMarker = 0;
 
 	canSeg3.header.Identifier = 0x0E3;
 	canSeg3.header.IdType = FDCAN_STANDARD_ID;
 	canSeg3.header.TxFrameType = FDCAN_DATA_FRAME;
 	canSeg3.header.DataLength = FDCAN_DLC_BYTES_24;
-	canSeg3.header.ErrorStateIndicator = FDCAN_ESI_ACTIVE;
+//	canSeg3.header.ErrorStateIndicator = FDCAN_ESI_ACTIVE;
 	canSeg3.header.BitRateSwitch = FDCAN_BRS_OFF;
 	canSeg3.header.FDFormat = FDCAN_FD_CAN;
-	canSeg3.header.TxEventFifoControl = FDCAN_NO_TX_EVENTS;
-	canSeg3.header.MessageMarker = 0;
+//	canSeg3.header.TxEventFifoControl = FDCAN_NO_TX_EVENTS;
+//	canSeg3.header.MessageMarker = 0;
 
 	canSeg4.header.Identifier = 0x0E4;
 	canSeg4.header.IdType = FDCAN_STANDARD_ID;
 	canSeg4.header.TxFrameType = FDCAN_DATA_FRAME;
 	canSeg4.header.DataLength = FDCAN_DLC_BYTES_24;
-	canSeg4.header.ErrorStateIndicator = FDCAN_ESI_ACTIVE;
+//	canSeg4.header.ErrorStateIndicator = FDCAN_ESI_ACTIVE;
 	canSeg4.header.BitRateSwitch = FDCAN_BRS_OFF;
 	canSeg4.header.FDFormat = FDCAN_FD_CAN;
-	canSeg4.header.TxEventFifoControl = FDCAN_NO_TX_EVENTS;
-	canSeg4.header.MessageMarker = 0;
+//	canSeg4.header.TxEventFifoControl = FDCAN_NO_TX_EVENTS;
+//	canSeg4.header.MessageMarker = 0;
 
 	canSeg5.header.Identifier = 0x0E5;
 	canSeg5.header.IdType = FDCAN_STANDARD_ID;
 	canSeg5.header.TxFrameType = FDCAN_DATA_FRAME;
 	canSeg5.header.DataLength = FDCAN_DLC_BYTES_24;
-	canSeg5.header.ErrorStateIndicator = FDCAN_ESI_ACTIVE;
+//	canSeg5.header.ErrorStateIndicator = FDCAN_ESI_ACTIVE;
 	canSeg5.header.BitRateSwitch = FDCAN_BRS_OFF;
 	canSeg5.header.FDFormat = FDCAN_FD_CAN;
-	canSeg5.header.TxEventFifoControl = FDCAN_NO_TX_EVENTS;
-	canSeg5.header.MessageMarker = 0;
+//	canSeg5.header.TxEventFifoControl = FDCAN_NO_TX_EVENTS;
+//	canSeg5.header.MessageMarker = 0;
 
 	canAccuStat.header.Identifier = 0x0F0;
 	canAccuStat.header.IdType = FDCAN_STANDARD_ID;
 	canAccuStat.header.TxFrameType = FDCAN_DATA_FRAME;
 	canAccuStat.header.DataLength = FDCAN_DLC_BYTES_24;
-	canAccuStat.header.ErrorStateIndicator = FDCAN_ESI_ACTIVE;
+//	canAccuStat.header.ErrorStateIndicator = FDCAN_ESI_ACTIVE;
 	canAccuStat.header.BitRateSwitch = FDCAN_BRS_OFF;
 	canAccuStat.header.FDFormat = FDCAN_FD_CAN;
-	canAccuStat.header.TxEventFifoControl = FDCAN_NO_TX_EVENTS;
-	canAccuStat.header.MessageMarker = 0;
+//	canAccuStat.header.TxEventFifoControl = FDCAN_NO_TX_EVENTS;
+//	canAccuStat.header.MessageMarker = 0;
 
 	canStat.header.Identifier = 0x0FA;
 	canStat.header.IdType = FDCAN_STANDARD_ID;
 	canStat.header.TxFrameType = FDCAN_DATA_FRAME;
 	canStat.header.DataLength = FDCAN_DLC_BYTES_24;
-	canStat.header.ErrorStateIndicator = FDCAN_ESI_ACTIVE;
+//	canStat.header.ErrorStateIndicator = FDCAN_ESI_ACTIVE;
 	canStat.header.BitRateSwitch = FDCAN_BRS_OFF;
 	canStat.header.FDFormat = FDCAN_FD_CAN;
-	canStat.header.TxEventFifoControl = FDCAN_NO_TX_EVENTS;
-	canStat.header.MessageMarker = 0;
+//	canStat.header.TxEventFifoControl = FDCAN_NO_TX_EVENTS;
+//	canStat.header.MessageMarker = 0;
 
 	canChargeStat.header.Identifier = 0x0F7;
 	canChargeStat.header.IdType = FDCAN_STANDARD_ID;
 	canChargeStat.header.TxFrameType = FDCAN_DATA_FRAME;
 	canChargeStat.header.DataLength = FDCAN_DLC_BYTES_24;
-	canChargeStat.header.ErrorStateIndicator = FDCAN_ESI_ACTIVE;
+//	canChargeStat.header.ErrorStateIndicator = FDCAN_ESI_ACTIVE;
 	canChargeStat.header.BitRateSwitch = FDCAN_BRS_OFF;
 	canChargeStat.header.FDFormat = FDCAN_FD_CAN;
-	canChargeStat.header.TxEventFifoControl = FDCAN_NO_TX_EVENTS;
-	canChargeStat.header.MessageMarker = 0;
+//	canChargeStat.header.TxEventFifoControl = FDCAN_NO_TX_EVENTS;
+//	canChargeStat.header.MessageMarker = 0;
+	if(HAL_FDCAN_ConfigTxDelayCompensation(&hfdcan2, 5, 0)!= HAL_OK) {
 
+			Error_Handler();
+
+		}
+
+
+		if(HAL_FDCAN_EnableTxDelayCompensation(&hfdcan2)!= HAL_OK) {
+
+			Error_Handler();
+
+		}
+
+	if(HAL_FDCAN_Start(&hfdcan2)!= HAL_OK) {
+				Error_Handler();
+			}
 
 
 
@@ -390,9 +432,9 @@ void CAN_Data_Init (void)
 void CAN_DataTX_1s (void)
 {
 
-	if (HAL_FDCAN_GetTxFifoFreeLevel(&hfdcan1) > 0)
+	if (HAL_FDCAN_GetTxFifoFreeLevel(&hfdcan2) > 0)
 	  {
-			if (HAL_FDCAN_AddMessageToTxFifoQ(&hfdcan1, &canSeg1.header, canSeg1.datas)!= HAL_OK)
+			if (HAL_FDCAN_AddMessageToTxFifoQ(&hfdcan2, &canSeg1.header, canSeg1.datas)!= HAL_OK)
 			 {
 			  Error_Handler();
 			 }
@@ -400,5 +442,5 @@ void CAN_DataTX_1s (void)
 
 
 
-	};
+	}
 /* USER CODE END 1 */

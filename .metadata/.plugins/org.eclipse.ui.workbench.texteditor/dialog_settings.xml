@@ -3,6 +3,7 @@
 	<item key="hasShownOverlayPopupBefore" value="true"/>
 	<item key="replaceBarOpen" value="false"/>
 	<list key="searchhistory">
+		<item value="pwm"/>
 		<item value="print"/>
 		<item value="adBmsWriteData"/>
 		<item value="uart"/>

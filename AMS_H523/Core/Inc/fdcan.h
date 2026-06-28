@@ -40,7 +40,7 @@ typedef struct {
 extern CanTxMsg canSeg1, canSeg2, canSeg3, canSeg4, canSeg5, canAccuStat, canStat, canChargeStat;
 
 #endif
-
+void cantestFraming(void);
 void canFraming (void);
 void CAN_Data_Init (void);
 void CAN_DataTX_1s (void);

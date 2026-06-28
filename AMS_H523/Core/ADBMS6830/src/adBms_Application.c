@@ -41,11 +41,12 @@ float tV;
 #define CELL_NUM 12
 #define BALANCE_THRESH 0.1
 
-#define TOTAL_IC 2
+#define TOTAL_IC 5
+
 cell_asic IC[TOTAL_IC];
 
 SEG_PARAMS *seg_paramst_list[] = {
-		&seg0,
+
 		&SEG1,
 		&SEG2,
 		&SEG3,
@@ -53,8 +54,10 @@ SEG_PARAMS *seg_paramst_list[] = {
 		&SEG5
 };
 
+
+
 /* ADC Command Configurations */
-RD      REDUNDANT_MEASUREMENT           = RD_OFF;
+RD      REDUNDANT_MEASUREMENT           = RD_ON;
 CH      AUX_CH_TO_CONVERT               = GPIO10;
 CONT    CONTINUOUS_MEASUREMENT          = SINGLE; //changed from single
 OW_C_S  CELL_OPEN_WIRE_DETECTION        = OW_OFF_ALL_CH; // changed from off
@@ -66,7 +69,7 @@ ERR     INJECT_ERR_SPI_READ             = WITHOUT_ERR;
 
 /* Set Under Voltage and Over Voltage Thresholds */
 const float OV_THRESHOLD = 4.2;                 /* Volt */
-const float UV_THRESHOLD = 2.6;                 /* Volt */
+const float UV_THRESHOLD = 2.9;                 /* Volt */
 const int OWC_Threshold = 2000;                 /* Cell Open wire threshold(mili volt) */
 const int OWA_Threshold = 50000;                /* Aux Open wire threshold(mili volt) */
 const uint32_t LOOP_MEASUREMENT_COUNT = 1;      /* Loop measurment count */
@@ -154,13 +157,15 @@ void adBms6830_init_config(uint8_t tIC, cell_asic *ic)
 
     ic[cic].tx_cfga.gpo = 0X3FF; /* All GPIO pulled up  */
     //ic[cic].tx_cfga.soakon = SOAKON_CLR;
-    ic[cic].tx_cfga.fc = IIR_FPA256;
+    ic[cic].tx_cfga.fc = IIR_FPA32;
 
     /* Init config B */
 
     ic[cic].tx_cfgb.vov = SetOverVoltageThreshold(OV_THRESHOLD);
     ic[cic].tx_cfgb.vuv = SetUnderVoltageThreshold(UV_THRESHOLD);
-    ic[cic].tx_cfgb.dtmen=DTMEN_OFF;
+//    ic[cic].tx_cfgb.dtmen=DTMEN_OFF;
+//    ic[cic].tx_cfgb.dcto=1;
+//    ic[cic].PwmA.pwma[0]=PWM_100_0_PCT;
 
 //    ic[cic].tx_cfgb.dcc = ConfigB_DccBit(DCC16, DCC_BIT_SET);
 //    SetConfigB_DischargeTimeOutValue(tIC, &ic[cic], RANG_0_TO_63_MIN, TIME_1MIN_OR_0_26HR);
@@ -170,7 +175,7 @@ void adBms6830_init_config(uint8_t tIC, cell_asic *ic)
   adBmsWriteData(tIC, &ic[0], WRCFGB, Config, B);
   adBms6830_Adcv(REDUNDANT_MEASUREMENT, CONTINUOUS, DISCHARGE_PERMITTED, RESET_FILTER, CELL_OPEN_WIRE_DETECTION);
   HAL_Delay(1);
-  //adBmsWakeupIcTim(12);
+//  adBmsWakeupIcTim(1);
 }
 
 /**
@@ -226,7 +231,6 @@ void adBms6830_start_adc_cell_voltage_measurment(uint8_t tIC)
   adBms6830_Adcv(REDUNDANT_MEASUREMENT, CONTINUOUS_MEASUREMENT, DISCHARGE_PERMITTED, RESET_FILTER, CELL_OPEN_WIRE_DETECTION);
   pladc_count = adBmsPollAdc(PLADC);
   printf("Cell conversion completed\n");
-#endif
   printPollAdcConvTime(pladc_count);
 }
 
@@ -476,15 +480,15 @@ void adBms6830_clear_fcell_measurement(uint8_t tIC)
 /** @}*/
 /** @}*/
 
-void adBms6830_togDischarge(cell_asic *ic,uint8_t cic, uint16_t dischCell, uint8_t dischEN)
-{
-//	for(uint8_t cic = 0; cic < tIC; cic++)
-//	  {
-		ic[cic].tx_cfgb.dtmen=DTMEN_ON;
-		ic[cic].tx_cfgb.dcc = ConfigB_DccBit(dischCell, dischEN);
-//		SetConfigB_DischargeTimeOutValue(tIC, &ic[ic], RANG_0_TO_63_MIN, TIME_1MIN_OR_0_26HR);
-//	  }
-}
+//void adBms6830_togDischarge(cell_asic *ic,uint8_t cic, uint16_t dischCell, uint8_t dischEN)
+//{
+////	for(uint8_t cic = 0; cic < tIC; cic++)
+////	  {
+//		ic[cic].tx_cfgb.dtmen=DTMEN_ON;
+//		ic[cic].tx_cfgb.dcc = ConfigB_DccBit(dischCell, dischEN);
+////		SetConfigB_DischargeTimeOutValue(tIC, &ic[ic], RANG_0_TO_63_MIN, TIME_1MIN_OR_0_26HR);
+////	  }
+//}
 
 void adBms6830_setgpo_69(uint8_t tIC, cell_asic *ic) {
 		float icTV;
@@ -508,6 +512,15 @@ void adBms6830_setgpo_69(uint8_t tIC, cell_asic *ic) {
 
 						st->CELL_T[val]=get_temp_from_voltage(tV);
 						val++;
+
+						if(SDC_Temp_CHECK){
+								if(get_temp_from_voltage(tV)>=55.0) {
+									SDC_FLAG = 0;
+											}
+								else {
+									SDC_FLAG = 1;
+								}
+									}
 						adBmsWakeupIc(tIC);
 	//					adBmsWriteData(tIC, &ic[0], WRCFGA, Config, A);
 	//					adBmsWriteData(tIC, &ic[0], WRCFGB, Config, B);
@@ -515,6 +528,8 @@ void adBms6830_setgpo_69(uint8_t tIC, cell_asic *ic) {
 						adBmsReadData(tIC, &ic[i], RDSTATA, Status, A);
 						icTV = getVoltage(ic[i].stata.itmp);
 						st->IC_T = (icTV/0.0075)-273 ;
+
+
 		    }
 
 		}
@@ -522,44 +537,44 @@ void adBms6830_setgpo_69(uint8_t tIC, cell_asic *ic) {
 }
 
 
-void balancingLoop(void)
-{
+//void balancingLoop(void)
+//{
+//
+//}
 
-}
 
-
-uint16_t updateBalancing(void)
- {
-
-	 float tSegmAvgCellV = 0.0;
-	 float segmAvgCellV = 0.0;
-	 for(int i=1; i<=SEG_NUM; i++)
-	 {
-		 SEG_PARAMS *m = seg_paramst_list[i];
-		 for(uint16_t j =0; j<CELL_NUM;j++)
-		 {
-			 tSegmAvgCellV += m->CELL_V[j];
-			 segmAvgCellV = tSegmAvgCellV/CELL_NUM;
-		 }
-		 for(int j =0; j<CELL_NUM;j++)
-		 {
-			 if ((m->CELL_V[j] - segmAvgCellV) > BALANCE_THRESH)
-			 {
-				// set bits
-				 adBms6830_togDischarge(&ic[i], j, 1);
-				 m->BAL_STAT = (1 << j);
-
-			 }
-			 else
-			 {
-				 // unset the bits
-				 adBms6830_togDischarge(&ic[i], j, 0);
-				 m->BAL_STAT = (0 << j);
-			 }
-		 }
-
-	 }
- }
+//uint16_t updateBalancing(void)
+// {
+//
+//	 float tSegmAvgCellV = 0.0;
+//	 float segmAvgCellV = 0.0;
+//	 for(int i=1; i<=SEG_NUM; i++)
+//	 {
+//		 SEG_PARAMS *m = seg_paramst_list[i];
+//		 for(uint16_t j =0; j<CELL_NUM;j++)
+//		 {
+//			 tSegmAvgCellV += m->CELL_V[j];
+//			 segmAvgCellV = tSegmAvgCellV/CELL_NUM;
+//		 }
+//		 for(int j =0; j<CELL_NUM;j++)
+//		 {
+//			 if ((m->CELL_V[j] - segmAvgCellV) > BALANCE_THRESH)
+//			 {
+//				// set bits
+//				 adBms6830_togDischarge(&ic[i], j, 1);
+//				 m->BAL_STAT = (1 << j);
+//
+//			 }
+//			 else
+//			 {
+//				 // unset the bits
+//				 adBms6830_togDischarge(&ic[i], j, 0);
+//				 m->BAL_STAT = (0 << j);
+//			 }
+//		 }
+//
+//	 }
+// }
 
 
 
