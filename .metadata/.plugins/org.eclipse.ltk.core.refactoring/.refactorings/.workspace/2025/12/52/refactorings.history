@@ -1,4 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<session version="1.0">
-<refactoring comment="Delete resource &apos;AMS_H523/Core/ADBMS6830/src/custom_calc_func,c&apos;" deleteContents="false" description="Delete resource &apos;AMS_H523/Core/ADBMS6830/src/custom_calc_func,c&apos;" element1="/AMS_H523/Core/ADBMS6830/src/custom_calc_func,c" flags="7" id="org.eclipse.ltk.core.refactoring.delete.resources" resources="1" stamp="1766480711341"/>
-</session>

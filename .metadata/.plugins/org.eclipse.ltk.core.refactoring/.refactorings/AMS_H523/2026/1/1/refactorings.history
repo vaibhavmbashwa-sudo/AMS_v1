@@ -1,4 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<session version="1.0">
-<refactoring comment="Rename resource &apos;AMS_H523/Core/ADBMS6830/src/adBms_funcdef.c&apos; to &apos;adBms_utildef.c&apos;" description="Rename resource &apos;adBms_funcdef.c&apos;" flags="7" id="org.eclipse.ltk.core.refactoring.rename.resource" input="Core/ADBMS6830/src/adBms_funcdef.c" name="adBms_utildef.c" stamp="1767252743864" updateReferences="true"/>
-</session>
