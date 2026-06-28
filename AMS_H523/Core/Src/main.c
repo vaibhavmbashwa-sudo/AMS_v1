@@ -79,6 +79,12 @@ uint8_t SDC_Temp_CHECK = 0;
 uint8_t SDC_FLAG =1;
 uint8_t SDC_V_CHECK = 1;
 uint8_t FAN_CTRL=0;
+uint8_t FAN_CTRL1=0;
+uint8_t FAN_CTRL2=0;
+uint8_t FAN_CTRL3=0;
+uint8_t FAN_CTRL4=0;
+uint8_t FAN_CTRL5=0;
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -184,12 +190,52 @@ int main(void)
 	  			  		HAL_GPIO_WritePin(Fan3Ctrl_GPIO_Port, Fan3Ctrl_Pin, GPIO_PIN_RESET);
 	  			  		HAL_GPIO_WritePin(Fan5Ctrl_GPIO_Port, Fan5Ctrl_Pin, GPIO_PIN_RESET);
 	  	  }
+	  if(FAN_CTRL1){
+//
+	  	  		HAL_GPIO_WritePin(Fan1Ctrl_GPIO_Port, Fan1Ctrl_Pin, GPIO_PIN_SET);
+//
+	  	  	  } else {
+
+	  	  		HAL_GPIO_WritePin(Fan1Ctrl_GPIO_Port, Fan1Ctrl_Pin, GPIO_PIN_SET);
+
+	  	  	  }
+	  if(FAN_CTRL2){
+
+	  	  		HAL_GPIO_WritePin(Fan2Ctrl_GPIO_Port, Fan2Ctrl_Pin, GPIO_PIN_SET);
+
+	  	  	  } else {
+
+	  	  			  		HAL_GPIO_WritePin(Fan2Ctrl_GPIO_Port, Fan2Ctrl_Pin, GPIO_PIN_RESET);
+
+	  	  	  }
+	  if(FAN_CTRL3){
+
+	  	  		HAL_GPIO_WritePin(Fan3Ctrl_GPIO_Port, Fan3Ctrl_Pin, GPIO_PIN_SET);
+
+	  	  	  } else {
+
+	  	  			  		HAL_GPIO_WritePin(Fan3Ctrl_GPIO_Port, Fan3Ctrl_Pin, GPIO_PIN_RESET);HAL_GPIO_WritePin(Fan5Ctrl_GPIO_Port, Fan5Ctrl_Pin, GPIO_PIN_RESET);
+	  	  	  }
+	  if(FAN_CTRL4){
+	  	  		  HAL_GPIO_WritePin(Fan4Ctrl_GPIO_Port, Fan4Ctrl_Pin, GPIO_PIN_SET);
+
+	  	  	  } else {
+	  	  		  HAL_GPIO_WritePin(Fan4Ctrl_GPIO_Port, Fan4Ctrl_Pin, GPIO_PIN_RESET);
+
+	  	  	  }
+	  if(FAN_CTRL5){
+
+	  	  		HAL_GPIO_WritePin(Fan5Ctrl_GPIO_Port, Fan5Ctrl_Pin, GPIO_PIN_SET);
+	  	  	  } else {
+
+	  	  			  		HAL_GPIO_WritePin(Fan5Ctrl_GPIO_Port, Fan5Ctrl_Pin, GPIO_PIN_RESET);
+	  	  	  }
 
 		  readI();
 		  ad29Delay_us(2500);
 
 
-	  cantestFraming();
+//	  cantestFraming();
 
 //	   		CAN_DataTX_1s();
 
