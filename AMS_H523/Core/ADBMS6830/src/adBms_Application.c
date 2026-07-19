@@ -166,8 +166,9 @@ void adBms6830_init_config(uint8_t tIC, cell_asic *ic)
 //    ic[cic].tx_cfgb.dtmen=DTMEN_OFF;
 //    ic[cic].tx_cfgb.dcto=1;
 //    ic[cic].PwmA.pwma[0]=PWM_100_0_PCT;
-
-//    ic[cic].tx_cfgb.dcc = ConfigB_DccBit(DCC16, DCC_BIT_SET);
+    for (uint8_t icell = 0; icell < 12; icell++) {
+    ic[cic].tx_cfgb.dcc = ConfigB_DccBit(icell, DCC_BIT_CLR);
+    }
 //    SetConfigB_DischargeTimeOutValue(tIC, &ic[cic], RANG_0_TO_63_MIN, TIME_1MIN_OR_0_26HR);
   }
   adBmsWakeupIc(tIC);
@@ -539,47 +540,32 @@ void adBms6830_setgpo_69(uint8_t tIC, cell_asic *ic) {
 }
 
 
-//void balancingLoop(void)
-//{
-//
-//}
 
-void cellDischarge (uint8_t cic, uint16_t cellD, uint8_t bit, cell_asic *ic)
+void cellDischarge (uint8_t cic, cell_asic *ic, uint16_t cellD, uint8_t bit)
 {
-	ic[cic].tx_cfgb.dcc = ConfigB_DccBit(cellD, bit);
+	if (cic >= TOTAL_IC) {
+	           return;
+	       }
+
+	       if (bit) {
+	           ic[cic].tx_cfgb.dcc |= (1U << cellD);
+	       } else {
+	           ic[cic].tx_cfgb.dcc &= ~(1U << cellD);
+	       }
+
+	       adBmsWakeupIc(TOTAL_IC);
+	       adBmsWriteData(TOTAL_IC, &ic[0], WRCFGB, Config, B);
+	       HAL_Delay(1);
 }
-//uint16_t updateBalancing(void)
-// {
-//
-//	 float tSegmAvgCellV = 0.0;
-//	 float segmAvgCellV = 0.0;
-//	 for(int i=1; i<=SEG_NUM; i++)
-//	 {
-//		 SEG_PARAMS *m = seg_paramst_list[i];
-//		 for(uint16_t j =0; j<CELL_NUM;j++)
-//		 {
-//			 tSegmAvgCellV += m->CELL_V[j];
-//			 segmAvgCellV = tSegmAvgCellV/CELL_NUM;
-//		 }
-//		 for(int j =0; j<CELL_NUM;j++)
-//		 {
-//			 if ((m->CELL_V[j] - segmAvgCellV) > BALANCE_THRESH)
-//			 {
-//				// set bits
-//				 adBms6830_togDischarge(&ic[i], j, 1);
-//				 m->BAL_STAT = (1 << j);
-//
-//			 }
-//			 else
-//			 {
-//				 // unset the bits
-//				 adBms6830_togDischarge(&ic[i], j, 0);
-//				 m->BAL_STAT = (0 << j);
-//			 }
-//		 }
-//
-//	 }
-// }
+
+void cellDisc (uint8_t cic, uint16_t cellD, uint8_t bit)
+ {
+
+	 cellDischarge(cic, &IC[0], cellD, bit);
+
+ }
+
+
 
 
 

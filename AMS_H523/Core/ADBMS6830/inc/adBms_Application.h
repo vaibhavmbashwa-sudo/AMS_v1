@@ -92,6 +92,8 @@ void adBms6830_read_rdacsall_voltage(uint8_t tIC, cell_asic *ic);
 void adBms6830_read_rdasall_voltage(uint8_t tIC, cell_asic *ic);
 // Temperature toggling
 void adBms6830_setgpo_69(uint8_t tIC, cell_asic *ic);
+void cellDischarge (uint8_t cic, cell_asic *ic, uint16_t cellD, uint8_t bit);
+void cellDisc (uint8_t cic, uint16_t cellD, uint8_t bit);
 //Discharge toggling
 //void adBms6830_togDischarge(uint8_t tIC, cell_asic *ic, uint16_t dischCell, uint8_t dischEN);
 // Custom fns
