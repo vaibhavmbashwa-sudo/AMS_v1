@@ -1,1 +1,6 @@
 # AMS firmware
+
+
+STM32H523ET6 MCU
+
+ADBMS2950, ADBMS6830B Peripherals
