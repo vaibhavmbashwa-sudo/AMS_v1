@@ -183,6 +183,8 @@ void adBms6830_init_config(uint8_t tIC, cell_asic *ic)
 * @brief Write and Read Configuration Register A/B
 *******************************************************************************
 */
+
+
 void adBms6830_write_read_config(uint8_t tIC, cell_asic *ic)
 {
   adBmsWakeupIc(tIC);
@@ -542,7 +544,10 @@ void adBms6830_setgpo_69(uint8_t tIC, cell_asic *ic) {
 //
 //}
 
-
+void cellDischarge (uint8_t cic, uint16_t cellD, uint8_t bit, cell_asic *ic)
+{
+	ic[cic].tx_cfgb.dcc = ConfigB_DccBit(cellD, bit);
+}
 //uint16_t updateBalancing(void)
 // {
 //

@@ -66,14 +66,14 @@ void MX_GPIO_Init(void)
   /*Configure GPIO pins : Fan3Ctrl_Pin Fan5Ctrl_Pin Fan4Ctrl_Pin */
   GPIO_InitStruct.Pin = Fan3Ctrl_Pin|Fan5Ctrl_Pin|Fan4Ctrl_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Pull = GPIO_PULLUP;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
   /*Configure GPIO pins : Fan1Ctrl_Pin Fan2Ctrl_Pin */
   GPIO_InitStruct.Pin = Fan1Ctrl_Pin|Fan2Ctrl_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Pull = GPIO_PULLUP;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOH, &GPIO_InitStruct);
 

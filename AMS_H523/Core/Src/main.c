@@ -74,7 +74,9 @@ uint8_t UpdateEve_MCUtemp = 0 ;
 uint16_t ADC_RES[2];
 float MCUTemperature, V_Sense, V_Ref;
 
-
+uint8_t Charge_EN = 0;
+uint8_t Charge_FullAmp = 0;
+uint8_t Charge_1Amp = 0;
 uint8_t SDC_Temp_CHECK = 0;
 uint8_t SDC_FLAG =1;
 uint8_t SDC_V_CHECK = 1;
@@ -113,8 +115,7 @@ int main(void)
   /* MCU Configuration--------------------------------------------------------*/
 
   /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
-
-	HAL_Init();
+  HAL_Init();
 
   /* USER CODE BEGIN Init */
 
@@ -143,10 +144,11 @@ int main(void)
   MX_TIM5_Init();
   MX_TIM4_Init();
   MX_ADC1_Init();
+  MX_TIM6_Init();
   /* USER CODE BEGIN 2 */
   HAL_GPIO_WritePin(CS2_GPIO_Port,CS2_Pin,GPIO_PIN_SET);
   HAL_TIM_Base_Start(&htim3);
-//  HAL_TIM_Base_Start_IT(&htim4);
+  HAL_TIM_Base_Start_IT(&htim6);
 ////  HAL_ADCEx_Calibration_Start(&hadc1,ADC_SINGLE_ENDED);
 ////  HAL_ADC_Start_DMA(&hadc1, (uint32_t*)ADC_RES, 2);   // Start ADC Conversion for MCU temp
 ////
@@ -155,7 +157,8 @@ int main(void)
 //  HAL_GPIO_WritePin(AMS_Fault_GPIO_Port, AMS_Fault_Pin, GPIO_PIN_SET);
   HAL_GPIO_WritePin(CS2_GPIO_Port, CS2_Pin, GPIO_PIN_SET);
 //  init_contCurrentConv();
-//  CAN_Data_Init();
+  CAN_Data_Init();
+  CAN_Charger_Init();
 //  HAL_Delay(1000);
 //  canFraming();
   adbms_init_loop();
@@ -164,7 +167,7 @@ int main(void)
 //  cantestFraming();
   /* USER CODE END 2 */
 
-
+  /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
@@ -177,62 +180,19 @@ int main(void)
 		  HAL_GPIO_WritePin(AMS_Fault_GPIO_Port, AMS_Fault_Pin, GPIO_PIN_RESET);
 	  }
 
-	  if(FAN_CTRL){
-	  		  HAL_GPIO_WritePin(Fan4Ctrl_GPIO_Port, Fan4Ctrl_Pin, GPIO_PIN_SET);
-	  		HAL_GPIO_WritePin(Fan1Ctrl_GPIO_Port, Fan1Ctrl_Pin, GPIO_PIN_SET);
-	  		HAL_GPIO_WritePin(Fan2Ctrl_GPIO_Port, Fan2Ctrl_Pin, GPIO_PIN_SET);
-	  		HAL_GPIO_WritePin(Fan3Ctrl_GPIO_Port, Fan3Ctrl_Pin, GPIO_PIN_SET);
-	  		HAL_GPIO_WritePin(Fan5Ctrl_GPIO_Port, Fan5Ctrl_Pin, GPIO_PIN_SET);
-	  	  } else {
-	  		  HAL_GPIO_WritePin(Fan4Ctrl_GPIO_Port, Fan4Ctrl_Pin, GPIO_PIN_RESET);
-	  		HAL_GPIO_WritePin(Fan1Ctrl_GPIO_Port, Fan1Ctrl_Pin, GPIO_PIN_SET);
-	  			  		HAL_GPIO_WritePin(Fan2Ctrl_GPIO_Port, Fan2Ctrl_Pin, GPIO_PIN_RESET);
-	  			  		HAL_GPIO_WritePin(Fan3Ctrl_GPIO_Port, Fan3Ctrl_Pin, GPIO_PIN_RESET);
-	  			  		HAL_GPIO_WritePin(Fan5Ctrl_GPIO_Port, Fan5Ctrl_Pin, GPIO_PIN_RESET);
-	  	  }
-	  if(FAN_CTRL1){
-//
-	  	  		HAL_GPIO_WritePin(Fan1Ctrl_GPIO_Port, Fan1Ctrl_Pin, GPIO_PIN_SET);
-//
-	  	  	  } else {
+	  Fan_All(FAN_CTRL);
+	  Fan_1(FAN_CTRL1);
+	  Fan_2(FAN_CTRL2);
+	  Fan_3(FAN_CTRL3);
+	  Fan_4(FAN_CTRL4);
+	  Fan_5(FAN_CTRL5);
 
-	  	  		HAL_GPIO_WritePin(Fan1Ctrl_GPIO_Port, Fan1Ctrl_Pin, GPIO_PIN_SET);
 
-	  	  	  }
-	  if(FAN_CTRL2){
 
-	  	  		HAL_GPIO_WritePin(Fan2Ctrl_GPIO_Port, Fan2Ctrl_Pin, GPIO_PIN_SET);
 
-	  	  	  } else {
 
-	  	  			  		HAL_GPIO_WritePin(Fan2Ctrl_GPIO_Port, Fan2Ctrl_Pin, GPIO_PIN_RESET);
-
-	  	  	  }
-	  if(FAN_CTRL3){
-
-	  	  		HAL_GPIO_WritePin(Fan3Ctrl_GPIO_Port, Fan3Ctrl_Pin, GPIO_PIN_SET);
-
-	  	  	  } else {
-
-	  	  			  		HAL_GPIO_WritePin(Fan3Ctrl_GPIO_Port, Fan3Ctrl_Pin, GPIO_PIN_RESET);HAL_GPIO_WritePin(Fan5Ctrl_GPIO_Port, Fan5Ctrl_Pin, GPIO_PIN_RESET);
-	  	  	  }
-	  if(FAN_CTRL4){
-	  	  		  HAL_GPIO_WritePin(Fan4Ctrl_GPIO_Port, Fan4Ctrl_Pin, GPIO_PIN_SET);
-
-	  	  	  } else {
-	  	  		  HAL_GPIO_WritePin(Fan4Ctrl_GPIO_Port, Fan4Ctrl_Pin, GPIO_PIN_RESET);
-
-	  	  	  }
-	  if(FAN_CTRL5){
-
-	  	  		HAL_GPIO_WritePin(Fan5Ctrl_GPIO_Port, Fan5Ctrl_Pin, GPIO_PIN_SET);
-	  	  	  } else {
-
-	  	  			  		HAL_GPIO_WritePin(Fan5Ctrl_GPIO_Port, Fan5Ctrl_Pin, GPIO_PIN_RESET);
-	  	  	  }
-
-		  readI();
-		  ad29Delay_us(2500);
+//		  readI();
+//		  ad29Delay_us(2500);
 
 
 //	  cantestFraming();
@@ -244,7 +204,7 @@ int main(void)
 	  	  adbms_readCell_loop();
 	  	  adbmsReinitMain();
 //	  	HAL_Delay(50);
-//	  	  adbms_readTempToggle();
+	  	  adbms_readTempToggle();
 //
 	  	  adBms_delayUs(3000);
 //	  	CAN_DataTX_1s();
@@ -375,7 +335,96 @@ void HAL_TIM_PeriodElapsedCallback (TIM_HandleTypeDef *htim)
 
  	}
 
+ 	if (htim == &htim6) {
+ 	// 		a++;
+ 	// 		canFraming();
+
+ 	 		CAN_Charger_transmit();
+ 	// 		HAL_Delay(100);
+
+ 	 	}
+
 }
+
+void Fan_All (uint8_t FANCtrl)
+{
+	if(FANCtrl){
+			    HAL_GPIO_WritePin(Fan5Ctrl_GPIO_Port, Fan5Ctrl_Pin, GPIO_PIN_SET);
+			    HAL_GPIO_WritePin(Fan4Ctrl_GPIO_Port, Fan4Ctrl_Pin, GPIO_PIN_SET);
+		  		HAL_GPIO_WritePin(Fan1Ctrl_GPIO_Port, Fan1Ctrl_Pin, GPIO_PIN_SET);
+		  		HAL_GPIO_WritePin(Fan2Ctrl_GPIO_Port, Fan2Ctrl_Pin, GPIO_PIN_SET);
+		  		HAL_GPIO_WritePin(Fan3Ctrl_GPIO_Port, Fan3Ctrl_Pin, GPIO_PIN_SET);
+
+		  	  } else {
+		  		HAL_GPIO_WritePin(Fan5Ctrl_GPIO_Port, Fan5Ctrl_Pin, GPIO_PIN_RESET);
+		  	    HAL_GPIO_WritePin(Fan4Ctrl_GPIO_Port, Fan4Ctrl_Pin, GPIO_PIN_RESET);
+		  		HAL_GPIO_WritePin(Fan1Ctrl_GPIO_Port, Fan1Ctrl_Pin, GPIO_PIN_RESET);
+		  			  		HAL_GPIO_WritePin(Fan2Ctrl_GPIO_Port, Fan2Ctrl_Pin, GPIO_PIN_RESET);
+		  			  		HAL_GPIO_WritePin(Fan3Ctrl_GPIO_Port, Fan3Ctrl_Pin, GPIO_PIN_RESET);
+
+		  	  }
+}
+
+void Fan_1 (uint8_t FANCtrl1)
+{
+	if(FANCtrl1){
+	//
+		  	  		HAL_GPIO_WritePin(Fan1Ctrl_GPIO_Port, Fan1Ctrl_Pin, GPIO_PIN_SET);
+	//
+		  	  	  } else {
+
+		  	  		HAL_GPIO_WritePin(Fan1Ctrl_GPIO_Port, Fan1Ctrl_Pin, GPIO_PIN_RESET);
+
+		  	  	  }
+}
+
+void Fan_2 (uint8_t FANCtrl2)
+{
+	if(FAN_CTRL2){
+
+		  	  		HAL_GPIO_WritePin(Fan2Ctrl_GPIO_Port, Fan2Ctrl_Pin, GPIO_PIN_SET);
+
+		  	  	  } else {
+
+		  	  			  		HAL_GPIO_WritePin(Fan2Ctrl_GPIO_Port, Fan2Ctrl_Pin, GPIO_PIN_RESET);
+
+		  	  	  }
+}
+void Fan_3 (uint8_t FANCtrl3)
+{
+	if(FAN_CTRL3){
+
+		  	  		HAL_GPIO_WritePin(Fan3Ctrl_GPIO_Port, Fan3Ctrl_Pin, GPIO_PIN_SET);
+
+		  	  	  } else {
+
+		  	  			  		HAL_GPIO_WritePin(Fan3Ctrl_GPIO_Port, Fan3Ctrl_Pin, GPIO_PIN_RESET);HAL_GPIO_WritePin(Fan5Ctrl_GPIO_Port, Fan5Ctrl_Pin, GPIO_PIN_RESET);
+		  	  	  }
+}
+void Fan_4 (uint8_t FANCtrl4)
+{
+	if(FAN_CTRL4){
+		  	  		  HAL_GPIO_WritePin(Fan4Ctrl_GPIO_Port, Fan4Ctrl_Pin, GPIO_PIN_SET);
+
+		  	  	  } else {
+		  	  		  HAL_GPIO_WritePin(Fan4Ctrl_GPIO_Port, Fan4Ctrl_Pin, GPIO_PIN_RESET);
+
+		  	  	  }
+}
+void Fan_5 (uint8_t FANCtrl5)
+{
+	if(FAN_CTRL5){
+
+		  	  		HAL_GPIO_WritePin(Fan5Ctrl_GPIO_Port, Fan5Ctrl_Pin, GPIO_PIN_SET);
+		  	  	  } else {
+
+		  	  			  		HAL_GPIO_WritePin(Fan5Ctrl_GPIO_Port, Fan5Ctrl_Pin, GPIO_PIN_RESET);
+		  	  	  }
+}
+
+
+
+
 /* USER CODE END 4 */
 
 /**

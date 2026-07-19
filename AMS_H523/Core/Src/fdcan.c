@@ -31,7 +31,31 @@ SEG_BSTAT *segstat_list[] = {
 		&SEG5_B
 };
 
+FDCAN_FilterTypeDef Chrgr_Filter_All;
+ FDCAN_TxHeaderTypeDef TxHeader1;
+
+
+ FDCAN_RxHeaderTypeDef RxHeader1;
+
+ int a,psr;
+
+
 uint16_t TSCurrentCAN;
+
+uint8_t TxData1[12] = {
+    0x00,
+    0x20,
+    0x10,
+    0x00,
+    0x00,
+    0x00,
+    0x00,
+    0x00,
+    0x00,
+    0x00,
+    0x00,
+    0x00
+};
 /* USER CODE END 0 */
 
 FDCAN_HandleTypeDef hfdcan1;
@@ -317,6 +341,41 @@ void canFraming(void)
 
 
 
+}
+
+void CAN_Charger_Init (void)
+{
+	HAL_FDCAN_Start(&hfdcan1);
+	Chrgr_Filter_All.IdType=FDCAN_EXTENDED_ID;
+	Chrgr_Filter_All.FilterIndex=0;
+	Chrgr_Filter_All.FilterType=FDCAN_FILTER_RANGE;
+	Chrgr_Filter_All.FilterConfig=FDCAN_FILTER_TO_RXFIFO0;
+	Chrgr_Filter_All.FilterID1=0;
+	Chrgr_Filter_All.FilterID2=0x7FFFFFFF;
+	  HAL_FDCAN_ConfigFilter(&hfdcan1,&Chrgr_Filter_All);
+
+	  TxHeader1.Identifier = 0x1806E5F4;
+	  TxHeader1.IdType = FDCAN_EXTENDED_ID;
+	  TxHeader1.DataLength = FDCAN_DLC_BYTES_8;
+	//  TxHeader1.BitRateSwitch = FDCAN_BRS_OFF;
+	//  TxHeader1.TxEventFifoControl = FDCAN_NO_TX_EVENTS;
+	//  TxHeader1.MessageMarker = 0;
+
+
+	  HAL_FDCAN_ActivateNotification(&hfdcan1,FDCAN_IT_TX_FIFO_EMPTY,513);
+	  HAL_FDCAN_ActivateNotification(&hfdcan1,FDCAN_IT_RX_FIFO0_NEW_MESSAGE,0);
+}
+
+void CAN_Charger_transmit(void)
+{
+	if (HAL_FDCAN_GetTxFifoFreeLevel(&hfdcan1) > 0)
+	{
+		if (HAL_FDCAN_AddMessageToTxFifoQ(&hfdcan1, &TxHeader1,  TxData1) != HAL_OK)
+		{
+			Error_Handler();
+		}
+
+	}
 }
 
 void CAN_Data_Init (void)

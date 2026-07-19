@@ -38,12 +38,19 @@ typedef struct {
    }CanTxMsg;
 
 extern CanTxMsg canSeg1, canSeg2, canSeg3, canSeg4, canSeg5, canAccuStat, canStat, canChargeStat;
+extern FDCAN_TxHeaderTypeDef TxHeader1;
+extern uint8_t TxData1[12];
 
+extern FDCAN_RxHeaderTypeDef RxHeader1;
+extern uint8_t RxData1[12];
+extern int a,psr;
 #endif
 void cantestFraming(void);
 void canFraming (void);
 void CAN_Data_Init (void);
 void CAN_DataTX_1s (void);
+void CAN_Charger_Init (void);
+void CAN_Charger_transmit(void);
 /* USER CODE END Includes */
 
 extern FDCAN_HandleTypeDef hfdcan1;

@@ -266,6 +266,26 @@ void printVoltages(uint8_t tIC, cell_asic *IC, TYPE type)
 
         s->CELL_V[index]=voltage; // cell voltages array struct
 
+        if(Charge_EN)
+        {
+        	if (voltage>=4.1)
+        	{
+        		cellDischarge(ic,index,1);
+        		 Charge_1Amp = 1;
+
+        	}
+        }
+        else {
+        	for (uint8_t iseg = 0; iseg < 6; iseg++)
+        	{
+        		for (uint8_t icell = 0; icell < 12; icell++) {
+
+        			cellDischarge(iseg,icell,0);
+        		}
+
+        	}
+        }
+
         if(SDC_V_CHECK){
         	if( (voltage<=2.9) | (voltage>=4.2)) {
         	        	SDC_FLAG = 0;

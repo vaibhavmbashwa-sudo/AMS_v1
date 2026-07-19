@@ -155,13 +155,25 @@ extern uint8_t FAN_CTRL2;
 extern uint8_t FAN_CTRL3;
 extern uint8_t FAN_CTRL4;
 extern uint8_t FAN_CTRL5;
+extern uint8_t Charge_FullAmp ;
+extern uint8_t Charge_1Amp ;
 //extern uint8_t MCU_junction_temp;
 extern float tV;
 extern uint8_t UpdateEve_MCUtemp;
 extern uint16_t ADC_RES[2];
 extern float MCUTemperature, V_Sense, V_Ref;
 extern uint8_t balancingState ;
+extern uint8_t Charge_EN;
+
+//extern uint8_t LimitCurr;
 void getMCUTemp(void);
+void Fan_All (uint8_t FANCtrl);
+void Fan_1 (uint8_t FANCtrl1);
+void Fan_2 (uint8_t FANCtrl2);
+void Fan_3 (uint8_t FANCtrl3);
+void Fan_4 (uint8_t FANCtrl4);
+void Fan_5 (uint8_t FANCtrl5);
+
 
 #endif
 
