@@ -39,10 +39,11 @@ typedef struct {
 
 extern CanTxMsg canSeg1, canSeg2, canSeg3, canSeg4, canSeg5, canAccuStat, canStat, canChargeStat;
 extern FDCAN_TxHeaderTypeDef TxHeader1;
-extern uint8_t TxData1[12];
+extern uint8_t ChargerTxData[8];
+
 
 extern FDCAN_RxHeaderTypeDef RxHeader1;
-extern uint8_t RxData1[12];
+extern uint8_t ChargerRxDataA[8];
 extern int a,psr;
 #endif
 void cantestFraming(void);

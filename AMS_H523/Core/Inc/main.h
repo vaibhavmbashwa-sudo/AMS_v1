@@ -140,12 +140,24 @@ typedef struct {
 
 extern SEG_BSTAT SEG1_B, SEG2_B, SEG3_B, SEG4_B, SEG5_B;
 
+typedef struct
+{
+    float Voltage;
+    float Current;
+    uint8_t Charging;
+    uint8_t Status;
+    int8_t Temperature;
+} ChargerData_t;
+
+extern ChargerData_t ChargerRxData;
+
 extern float TS_Current;
 extern float AMS_SOC;
 extern uint8_t AMS_SAFE;
 extern uint8_t ERR_CODES;
-extern float AMS_Charg_I;
-extern float AMS_Charg_V;
+extern uint16_t AMS_Charg_I;
+extern uint16_t AMS_Charg_V;
+
 extern uint8_t SDC_FLAG ;
 extern uint8_t SDC_V_CHECK ;
 extern uint8_t SDC_Temp_CHECK;

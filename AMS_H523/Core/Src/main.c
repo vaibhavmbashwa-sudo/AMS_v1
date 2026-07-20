@@ -65,8 +65,8 @@ SEG_BSTAT SEG1_B, SEG2_B, SEG3_B, SEG4_B, SEG5_B;
 float AMS_SOC = 0.0;
 uint8_t AMS_SAFE;
 
-float AMS_Charg_I = 0.0;;
-float AMS_Charg_V = 0.0;;
+uint16_t AMS_Charg_I = 50;
+uint16_t AMS_Charg_V = 3201;
 uint8_t balancingState = 0 ; // 0-> normal mode || 1-> charger connected
 //uint8_t MCU_junction_temp;
 

@@ -31,10 +31,13 @@ SEG_BSTAT *segstat_list[] = {
 		&SEG5_B
 };
 
+ChargerData_t ChargerRxData;
+
 FDCAN_FilterTypeDef Chrgr_Filter_All;
+
+uint8_t ChargerTxData[8];
+
  FDCAN_TxHeaderTypeDef TxHeader1;
-
-
  FDCAN_RxHeaderTypeDef RxHeader1;
 
  int a,psr;
@@ -42,11 +45,9 @@ FDCAN_FilterTypeDef Chrgr_Filter_All;
 
 uint16_t TSCurrentCAN;
 
-uint8_t TxData1[12] = {
-    0x00,
-    0x20,
-    0x10,
-    0x00,
+
+
+uint8_t ChargerRxDataA[8] = {
     0x00,
     0x00,
     0x00,
@@ -345,32 +346,58 @@ void canFraming(void)
 
 void CAN_Charger_Init (void)
 {
-	HAL_FDCAN_Start(&hfdcan1);
+
+
 	Chrgr_Filter_All.IdType=FDCAN_EXTENDED_ID;
 	Chrgr_Filter_All.FilterIndex=0;
-	Chrgr_Filter_All.FilterType=FDCAN_FILTER_RANGE;
+	Chrgr_Filter_All.FilterType=FDCAN_FILTER_MASK;
 	Chrgr_Filter_All.FilterConfig=FDCAN_FILTER_TO_RXFIFO0;
-	Chrgr_Filter_All.FilterID1=0;
-	Chrgr_Filter_All.FilterID2=0x7FFFFFFF;
-	  HAL_FDCAN_ConfigFilter(&hfdcan1,&Chrgr_Filter_All);
+	Chrgr_Filter_All.FilterID1=0x18FF50E5;
+	Chrgr_Filter_All.FilterID2=0x1FFFFFFF;
 
-	  TxHeader1.Identifier = 0x1806E5F4;
-	  TxHeader1.IdType = FDCAN_EXTENDED_ID;
-	  TxHeader1.DataLength = FDCAN_DLC_BYTES_8;
-	//  TxHeader1.BitRateSwitch = FDCAN_BRS_OFF;
-	//  TxHeader1.TxEventFifoControl = FDCAN_NO_TX_EVENTS;
-	//  TxHeader1.MessageMarker = 0;
+	HAL_FDCAN_ConfigFilter(&hfdcan1,&Chrgr_Filter_All);
+
+	HAL_FDCAN_ConfigGlobalFilter(&hfdcan1,
+	                                 FDCAN_REJECT,
+	                                 FDCAN_REJECT,
+	                                 FDCAN_REJECT_REMOTE,
+	                                 FDCAN_REJECT_REMOTE);
+
+	  TxHeader1.Identifier          = 0x1806E5F4;
+	  TxHeader1.IdType              = FDCAN_EXTENDED_ID;
+	  TxHeader1.TxFrameType         = FDCAN_DATA_FRAME;
+	  TxHeader1.DataLength          = FDCAN_DLC_BYTES_8;
+	  TxHeader1.ErrorStateIndicator = FDCAN_ESI_ACTIVE;
+	  TxHeader1.BitRateSwitch       = FDCAN_BRS_OFF;
+	  TxHeader1.FDFormat            = FDCAN_CLASSIC_CAN;
+	  TxHeader1.TxEventFifoControl  = FDCAN_NO_TX_EVENTS;
+	  TxHeader1.MessageMarker       = 0;
 
 
-	  HAL_FDCAN_ActivateNotification(&hfdcan1,FDCAN_IT_TX_FIFO_EMPTY,513);
+//	  HAL_FDCAN_ActivateNotification(&hfdcan1,FDCAN_IT_TX_FIFO_EMPTY,513);
 	  HAL_FDCAN_ActivateNotification(&hfdcan1,FDCAN_IT_RX_FIFO0_NEW_MESSAGE,0);
+
+	  HAL_FDCAN_Start(&hfdcan1);
 }
 
 void CAN_Charger_transmit(void)
 {
+	ChargerTxData[0] = (AMS_Charg_V >> 8) & 0xFF;   // Voltage High
+	ChargerTxData[1] = AMS_Charg_V & 0xFF;          // Voltage Low
+
+	ChargerTxData[2] = (AMS_Charg_I >> 8) & 0xFF;   // Current High
+	ChargerTxData[3] = AMS_Charg_I & 0xFF;          // Current Low
+
+	ChargerTxData[4] = 0x00;   // 0 = Start Charging
+	// TxData[4] = 0x01;   // Stop Charging
+
+	ChargerTxData[5] = 0x00;
+	ChargerTxData[6] = 0x00;
+	ChargerTxData[7] = 0x00;
+
 	if (HAL_FDCAN_GetTxFifoFreeLevel(&hfdcan1) > 0)
 	{
-		if (HAL_FDCAN_AddMessageToTxFifoQ(&hfdcan1, &TxHeader1,  TxData1) != HAL_OK)
+		if (HAL_FDCAN_AddMessageToTxFifoQ(&hfdcan1, &TxHeader1,  ChargerTxData) != HAL_OK)
 		{
 			Error_Handler();
 		}
@@ -486,6 +513,48 @@ void CAN_Data_Init (void)
 
 
 
+}
+
+void HAL_FDCAN_RxFifo0Callback(FDCAN_HandleTypeDef *hfdcan,
+                               uint32_t RxFifo0ITs)
+{
+    if ((RxFifo0ITs & FDCAN_IT_RX_FIFO0_NEW_MESSAGE) != 0)
+    {
+        if (HAL_FDCAN_GetRxMessage(hfdcan,
+                                   FDCAN_RX_FIFO0,
+                                   &RxHeader1,
+                                   ChargerRxDataA) != HAL_OK)
+        {
+            Error_Handler();
+        }
+
+        // Check that the received message is from the charger
+        if (RxHeader1.Identifier == 0x18FF50E5)
+        {
+        	Parse_Charger_Message(ChargerRxDataA);
+        	// RxData[0] to RxData[7] now contain the received bytes
+        }
+    }
+}
+
+void Parse_Charger_Message(uint8_t *Rx)
+{
+    uint16_t voltage;
+    uint16_t current;
+
+    voltage = ((uint16_t)Rx[0] << 8) | Rx[1];
+    current = ((uint16_t)Rx[2] << 8) | Rx[3];
+
+    ChargerRxData.Voltage = voltage * 0.1f;
+
+    ChargerRxData.Charging = !(Rx[2] & 0x80);
+
+    current &= 0x7FFF;
+    ChargerRxData.Current = current * 0.1f;
+
+    ChargerRxData.Status = Rx[4];
+
+    ChargerRxData.Temperature = Rx[5];
 }
 
 void CAN_DataTX_1s (void)
